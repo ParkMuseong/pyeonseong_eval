@@ -8,7 +8,8 @@
   "use strict";
 
   var AXES = ["화제성", "독창성", "근접성", "영향성"];
-  var FILTERS = ["유형", "세부유형", "장르", "국가"];
+  var FILTERS = ["유형"];            // 단일 선택 필터 (세부유형·장르 필터 제거)
+  var countrySel = new Set();        // 국가 다중 선택
   var LS_KEY = "lle_eval_v1";
 
   var DATA = (window.LONGLIST_DATA || []).slice();
@@ -231,6 +232,34 @@
     sel.addEventListener("change", render);
   });
 
+  // 국가 다중 선택 (체크박스 드롭다운)
+  (function () {
+    var btn = document.getElementById("ms-국가-btn");
+    var panel = document.getElementById("ms-국가-panel");
+    var box = document.getElementById("ms-국가");
+    if (!btn || !panel) return;
+    var vals = Array.from(new Set(DATA.map(function (w) { return (w.국가 || "").trim(); }).filter(Boolean)))
+      .sort(function (a, b) { return a.localeCompare(b, "ko"); });
+    panel.innerHTML = vals.map(function (v) {
+      return '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '" /> ' + esc(v) + "</label>";
+    }).join("");
+    function syncLabel() {
+      btn.textContent = countrySel.size === 0 ? "전체" : (countrySel.size + "개 선택");
+      btn.classList.toggle("on", countrySel.size > 0);
+    }
+    function open(o) { panel.hidden = !o; btn.setAttribute("aria-expanded", o ? "true" : "false"); }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); open(panel.hidden); });
+    panel.addEventListener("change", function (e) {
+      var cb = e.target;
+      if (!cb || cb.type !== "checkbox") return;
+      if (cb.checked) countrySel.add(cb.value); else countrySel.delete(cb.value);
+      syncLabel();
+      render();
+    });
+    document.addEventListener("click", function (e) { if (box && !box.contains(e.target)) open(false); });
+    syncLabel();
+  })();
+
   // 공개월·주차 옵션 (데이터의 공개일에서 자동 생성, 월→주차 순 정렬)
   (function () {
     var map = {};
@@ -270,6 +299,7 @@
         var key = FILTERS[k];
         if (f[key] && (w[key] || "").trim() !== f[key]) return;
       }
+      if (countrySel.size && !countrySel.has((w.국가 || "").trim())) return;
       if (omv && openInfo(w.공개일).key !== omv) return;
       if (aiMin > 0) {
         var r = aiRating(w);
@@ -379,6 +409,7 @@
       html += '<td class="merged cat" rowspan="3">' + esc(w.유형 || "-") + "</td>";
       html += '<td class="merged cat" rowspan="3">' + esc(w.세부유형 || "-") + "</td>";
       html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w.콘텐츠명 || "-") + "</td>";
+      html += '<td class="merged genre" rowspan="3">' + esc(w.장르 || "-") + "</td>";
       html += '<td class="merged opendate" rowspan="3">' + esc(openDisplay(w.공개일)) + "</td>";
       html += '<td class="merged platform" rowspan="3">' + esc(w.플랫폼 || "-") + "</td>";
       AXES.forEach(function (a) { html += inputCell(i, "p1", a); });
@@ -399,7 +430,7 @@
       html += "</tr>";
 
       // 상세 펼침 행
-      html += '<tr class="detail-row" id="detail-' + i + '" data-work="' + i + '" style="display:none"><td colspan="11">' +
+      html += '<tr class="detail-row" id="detail-' + i + '" data-work="' + i + '" style="display:none"><td colspan="12">' +
         '<div class="lle-detail"><dl class="dl">' +
         (w.순위 ? "<dt>AI 순위</dt><dd>" + esc(w.순위) + "위</dd>" : "") +
         "<dt>감독</dt><dd>" + esc(w.감독 || "-") + "</dd>" +
@@ -500,6 +531,12 @@
 
   document.getElementById("resetBtn").addEventListener("click", function () {
     FILTERS.forEach(function (f) { document.getElementById("f-" + f).value = ""; });
+    // 국가 다중선택 초기화
+    countrySel.clear();
+    var p = document.getElementById("ms-국가-panel");
+    if (p) Array.prototype.forEach.call(p.querySelectorAll("input[type=checkbox]"), function (c) { c.checked = false; });
+    var b = document.getElementById("ms-국가-btn");
+    if (b) { b.textContent = "전체"; b.classList.remove("on"); }
     document.getElementById("f-공개월").value = "";
     document.getElementById("f-ai").value = "0";
     document.getElementById("f-ai-val").textContent = "전체";

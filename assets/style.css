@@ -2,24 +2,27 @@
  *  편성회의 Agent — 공통 스타일
  * ========================================================================== */
 :root {
-  --ink: #0a0a0a;
-  --ink-soft: #3f3f46;
-  --muted: #71717a;
-  --line: #e4e4e7;
-  --line-soft: #f0f0ef;
-  --paper: #ffffff;
-  --paper-2: #fafaf9;
-  --amber: #b45309;
-  --amber-soft: #fcf4e8;
-  --green: #1f6b3b;
-  --green-soft: #e8f3ec;
+  /* 에디토리얼(방송·뉴스룸) 팔레트 — 종이 톤 + 잉크 + 가는 괘선 */
+  --ink: #1f1b16;          /* 따뜻한 먹색 */
+  --ink-soft: #4c463c;
+  --muted: #8f897b;
+  --line: #e1dccd;         /* 종이 위 가는 괘선 */
+  --line-soft: #ece7d9;
+  --rule: #1f1b16;         /* 강한 괘선(헤드라인 밑줄) */
+  --paper: #faf7ef;        /* 페이지 바탕 */
+  --paper-2: #f2ede0;      /* 옅은 면 */
+  --surface: #fffdf8;      /* 카드/표 바탕 */
+  --amber: #9a6a2f;        /* 보조 강조(오커) */
+  --amber-soft: #f1e7d3;
+  --green: #2f5d44;        /* 주 강조(딥 그린) */
+  --green-soft: #e6ece7;
 
-  /* 점수 스케일 색상 (1~5) */
-  --s1: #d94f4f;
-  --s2: #e2884b;
-  --s3: #d9b94f;
-  --s4: #7fae5a;
-  --s5: #3f8f5b;
+  /* 점수 스케일 색상 (1~5) — 차분하게 */
+  --s1: #b14a3f;
+  --s2: #b9763c;
+  --s3: #ad9540;
+  --s4: #5d8753;
+  --s5: #2f6b46;
 
   --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
   --sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
@@ -48,47 +51,50 @@ a { color: inherit; }
   padding: 0 24px;
 }
 
-/* ---- Top bar / nav ---- */
+/* ---- 마스트헤드 / nav (에디토리얼) ---- */
 .topbar {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--rule);
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(250, 247, 239, 0.94);
   backdrop-filter: blur(8px);
   z-index: 40;
 }
 .topbar .inner {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 18px;
-  height: 60px;
+  height: 66px;
+  padding-top: 4px;
 }
 .brand {
   font-family: var(--serif);
-  font-weight: 600;
-  font-size: 17px;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.02em;
   text-decoration: none;
   white-space: nowrap;
+  align-self: center;
 }
-.brand .dot { color: var(--amber); }
+.brand .dot { color: var(--green); }
 .nav {
   display: flex;
-  gap: 4px;
+  gap: 22px;
   margin-left: auto;
   align-items: center;
 }
 .nav a {
   text-decoration: none;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink-soft);
-  padding: 7px 14px;
-  border-radius: 999px;
-  transition: background 0.12s, color 0.12s;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.12s, border-color 0.12s;
 }
-.nav a:hover { background: var(--paper-2); color: var(--ink); }
-.nav a.active { background: var(--ink); color: #fff; }
+.nav a:hover { color: var(--ink); }
+.nav a.active { color: var(--ink); border-bottom-color: var(--green); }
 
 /* ---- Hero ---- */
 .hero { padding: 56px 0 40px; }
@@ -182,26 +188,32 @@ a { color: inherit; }
 }
 .crit p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 
-/* ---- Section heading ---- */
+/* ---- Section heading (에디토리얼 헤드라인) ---- */
 .section-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin: 36px 0 18px;
+  margin: 44px 0 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
 }
 .section-head h1 {
   font-family: var(--serif);
-  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 700;
+  font-size: clamp(28px, 3.4vw, 40px);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 .section-head .meta {
   font-family: var(--mono);
   font-size: 12px;
+  letter-spacing: 0.02em;
   color: var(--muted);
   text-align: right;
+  padding-bottom: 4px;
 }
 
 /* ---- Toolbar (filters) ---- */
@@ -496,10 +508,12 @@ table.long tr.detail td {
 
 /* ---- Footer ---- */
 .foot {
-  border-top: 1px solid var(--line);
-  margin-top: 60px;
-  padding: 26px 0 50px;
-  font-size: 12.5px;
+  border-top: 2px solid var(--rule);
+  margin-top: 64px;
+  padding: 22px 0 56px;
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
   color: var(--muted);
 }
 .foot a { color: var(--ink-soft); text-decoration: none; margin-right: 14px; }
