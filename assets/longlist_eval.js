@@ -348,6 +348,23 @@
       "</div></div>";
   }
 
+  // AI 평가사유 "[화제성 N] ... [독창성 N] ... [종합] ..." → 항목별 블록으로 분리
+  function reasonBlocks(text) {
+    text = String(text == null ? "" : text).trim();
+    if (!text) return "";
+    var re = /\[([^\]]+)\]\s*([\s\S]*?)(?=\s*\[[^\]]+\]|$)/g;
+    var m, out = "", any = false;
+    while ((m = re.exec(text))) {
+      var label = m[1].trim();
+      var body = m[2].trim();
+      if (!label && !body) continue;
+      any = true;
+      out += '<div class="rsn-sec"><div class="rsn-label">[ ' + esc(label) + ' ]</div>' +
+        '<div class="rsn-body">' + esc(body) + "</div></div>";
+    }
+    return any ? out : '<div class="rsn-body">' + esc(text) + "</div>";
+  }
+
   function render() {
     var idxs = visibleIndices().sort(cmpTotal);
     rendered = idxs.slice();
@@ -389,7 +406,7 @@
         "<dt>출연진</dt><dd>" + esc(w.출연진 || "-") + "</dd>" +
         "<dt>줄거리</dt><dd>" + esc(w.줄거리 || "-") + "</dd>" +
         "</dl>" +
-        (w.평가사유 ? '<div class="reason-box"><b>AI 평가사유 —</b> ' + esc(w.평가사유) + "</div>" : "") +
+        (w.평가사유 ? '<div class="reason-box"><div class="rsn-title">AI 평가사유</div>' + reasonBlocks(w.평가사유) + "</div>" : "") +
         reasonsHTML(i) +
         "</div></td></tr>";
     });

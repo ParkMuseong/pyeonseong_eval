@@ -352,10 +352,29 @@ table.lle tbody tr.detail-row td {
   background: var(--amber-soft);
   border-left: 3px solid var(--amber);
   border-radius: 0 8px 8px 0;
-  padding: 10px 14px;
-  font-size: 12.5px;
+  padding: 12px 16px;
+  font-size: 13px;
   color: #5b3a12;
-  white-space: pre-wrap;
+}
+.lle-detail .reason-box .rsn-title {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+.lle-detail .reason-box .rsn-sec { margin-bottom: 11px; }
+.lle-detail .reason-box .rsn-sec:last-child { margin-bottom: 0; }
+.lle-detail .reason-box .rsn-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #92400e;
+  margin-bottom: 3px;
+}
+.lle-detail .reason-box .rsn-body {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #5b3a12;
 }
 
 /* 사람 평가 사유 입력 (상세 영역) */
