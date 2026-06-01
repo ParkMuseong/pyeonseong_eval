@@ -8,7 +8,7 @@
  *    ※ 정적 사이트 특성상 소스를 열면 보이는 "간단한 가림막" 수준의 보호입니다.
  * ========================================================================== */
 window.LLE_CONFIG = {
-  SUPABASE_URL: "",        // 예: "https://abcdefgh.supabase.co"
-  SUPABASE_ANON_KEY: "",   // 예: "eyJhbGciOiJIUzI1NiIsImtpZCI6..."  (anon public)
-  SITE_PASSWORD: "changeme" // 평가자들에게 알려줄 공통 암호로 변경하세요. ""로 두면 암호 없음.
+  SUPABASE_URL: "https://awiscsicvwvtgxrnwdce.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3aXNjc2ljdnd2dGd4cm53ZGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNzc2MzEsImV4cCI6MjA5NTg1MzYzMX0.EKu9VpJwrGO3pC6umoXdWFYlXh4WXZh431LdlxM_h0M",
+  SITE_PASSWORD: "@eportal/1" // 평가자 공통 암호. ""로 두면 암호 없음.
 };
