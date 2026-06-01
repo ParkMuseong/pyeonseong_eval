@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>평가 롱리스트 확인 — 편성회의 Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
+<link rel="stylesheet" href="assets/style.css" />
+<link rel="stylesheet" href="assets/longlist_eval.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span> · 평가 확인</a>
+    <nav class="nav">
+      <a href="index.html" data-page="index.html">홈</a>
+      <a href="longlist.html" data-page="longlist.html">롱리스트</a>
+      <a href="longlist_eval.html" data-page="longlist_eval.html">평가 확인</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="section-head">
+    <h1>평가 롱리스트 확인</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <!-- 평가자 로그인 상태 바 -->
+  <div class="authbar" id="authbar">
+    <span class="auth-dot" id="authDot"></span>
+    <span id="authStatus">로그인되지 않음 · 읽기 전용</span>
+    <span class="sync-status" id="syncStatus"></span>
+    <button class="btn ghost" id="syncBtn" type="button" style="margin-left:auto">동기화</button>
+    <button class="btn ghost" id="authBtn" type="button" style="margin-left:0">평가자 로그인</button>
+  </div>
+
+  <!-- 상단 카테고리 필터 -->
+  <div class="filterbar">
+    <div class="fgroup"><label>분야</label><select id="f-분야"></select></div>
+    <div class="fgroup"><label>유형</label><select id="f-유형"></select></div>
+    <div class="fgroup"><label>세부유형</label><select id="f-세부유형"></select></div>
+    <div class="fgroup"><label>장르</label><select id="f-장르"></select></div>
+    <div class="fgroup"><label>국가</label><select id="f-국가"></select></div>
+    <div class="fgroup"><label>공개월·주차</label><select id="f-공개월"></select></div>
+    <div class="fgroup">
+      <label>AI 평점 ≥ <b id="f-ai-val">전체</b></label>
+      <input type="range" id="f-ai" min="0" max="9" step="0.5" value="0" />
+    </div>
+    <div class="spacer"></div>
+    <div class="actions">
+      <span class="count" id="count"></span>
+      <button class="btn ghost" id="resetBtn" type="button">필터 초기화</button>
+      <button class="btn" id="exportBtn" type="button">엑셀/CSV로 내보내기</button>
+    </div>
+  </div>
+
+  <div class="lle-wrap">
+    <table class="lle">
+      <thead>
+        <tr class="title-row">
+          <th colspan="12">편성회의 평가 롱리스트 · 사람 평가자 2인 입력 + AI 평가</th>
+        </tr>
+        <tr class="col-row">
+          <th>분야 <span class="filter-ic">▼</span></th>
+          <th>유형 <span class="filter-ic">▼</span></th>
+          <th>세부유형 <span class="filter-ic">▼</span></th>
+          <th>콘텐츠명 <span class="filter-ic">▼</span></th>
+          <th>공개일 <span class="filter-ic">▼</span></th>
+          <th>플랫폼 <span class="filter-ic">▼</span></th>
+          <th class="axis">화제성</th>
+          <th class="axis">독창성</th>
+          <th class="axis">근접성</th>
+          <th class="axis">영향성</th>
+          <th>평점</th>
+          <th class="total">총점</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="lle-hint">
+    · <b>평가자 로그인</b> 후 본인 행의 점수칸(0~10)을 입력할 수 있습니다(상대 평가자·AI 행은 잠금).
+    · 점수 입력 시 평점·총점이 즉시 재계산되고, 엔터로 다음 칸 이동 + 총점순 재정렬됩니다.
+    · 콘텐츠명을 클릭하면 주체·참여·설명과 함께 <b>축별 평가 사유 입력칸</b>이 펼쳐집니다.
+    · 입력값은 브라우저에 임시 저장되며, 보관하려면 「내보내기」를 사용하세요.
+  </div>
+  <div class="empty" id="empty" style="display:none">조건에 맞는 작품이 없습니다.</div>
+</main>
+
+<!-- 접근 암호 게이트 -->
+<div class="gate-back" id="gateBack">
+  <div class="gate-box" role="dialog" aria-modal="true">
+    <h2>접근 암호</h2>
+    <p class="login-sub">이 페이지는 보호되어 있습니다.<br />공통 암호를 입력하세요.</p>
+    <label class="login-field">암호<input id="gatePw" type="password" autocomplete="off" /></label>
+    <div class="login-msg" id="gateMsg"></div>
+    <button class="btn" id="gateBtn" type="button">입장</button>
+  </div>
+</div>
+
+<!-- 로그인 오버레이 -->
+<div class="login-back" id="loginBack">
+  <div class="login-box" role="dialog" aria-modal="true">
+    <button class="login-x" id="loginClose" aria-label="닫기">&times;</button>
+    <h2>평가자 로그인</h2>
+    <p class="login-sub">평가자를 선택하고 이름·비밀번호를 입력하세요.<br />처음 로그인하면 해당 비밀번호로 등록됩니다.</p>
+    <div class="role-tabs">
+      <button type="button" class="role-tab active" data-role="p1">평가자 1</button>
+      <button type="button" class="role-tab" data-role="p2">평가자 2</button>
+    </div>
+    <label class="login-field">이름<input id="loginName" type="text" autocomplete="off" placeholder="평가자 이름" /></label>
+    <label class="login-field">비밀번호<input id="loginPw" type="password" autocomplete="off" placeholder="비밀번호" /></label>
+    <div class="login-msg" id="loginMsg"></div>
+    <button class="btn" id="loginBtn" type="button">로그인</button>
+    <button class="login-skip" id="loginSkip" type="button">로그인 없이 보기 (읽기 전용)</button>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <a href="index.html">홈</a><a href="longlist.html">롱리스트</a>
+    <span id="genFoot"></span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="longlist_data.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/longlist_eval.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>롱리스트 — 편성회의 Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span> · 평가 결과</a>
+    <nav class="nav">
+      <a href="index.html" data-page="index.html">홈</a>
+      <a href="longlist.html" data-page="longlist.html">롱리스트</a>
+      <a href="shortlist.html" data-page="shortlist.html">숏리스트</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="section-head">
+    <h1>롱리스트 — 전체 평가 작품</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="제목·출연·감독·줄거리 검색…" />
+    <select id="cat"><option value="">전체 분류</option></select>
+    <select id="sort">
+      <option value="total">정렬: 총점 높은 순</option>
+      <option value="title">정렬: 제목순</option>
+    </select>
+    <label class="slider-box">총점 ≥ <input type="range" id="minScore" min="0" max="5" step="0.5" value="0" /> <b id="minScoreVal">0</b></label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="eval-table-wrap">
+    <table class="long">
+      <thead>
+        <tr>
+          <th style="width:46px">#</th>
+          <th>제목</th>
+          <th style="width:120px">분류</th>
+          <th style="width:120px">장르</th>
+          <th style="width:120px">기간</th>
+          <th style="width:90px">총점</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="empty" style="display:none">조건에 맞는 작품이 없습니다.</div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a href="index.html">홈</a><a href="shortlist.html">숏리스트</a>
+    <span id="genFoot"></span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function () {
+  var D = window.PROGRAM_DATA || { works: [] };
+  var E = window.Eval;
+  var works = (D.works || []).map(function (w) {
+    return Object.assign({}, w, { _total: E.totalOf(w) });
+  });
+
+  var rowsEl = document.getElementById("rows");
+  var emptyEl = document.getElementById("empty");
+  var qEl = document.getElementById("q");
+  var catEl = document.getElementById("cat");
+  var sortEl = document.getElementById("sort");
+  var minEl = document.getElementById("minScore");
+  var minValEl = document.getElementById("minScoreVal");
+  var threshold = D.threshold != null ? D.threshold : 3.5;
+
+  document.getElementById("meta").textContent =
+    (D.month_label ? D.month_label + " · " : "") + "총 " + works.length + "개 작품";
+  document.getElementById("genFoot").textContent =
+    (D.generated_at ? "기준: " + D.generated_at + " · " : "") + "샘플 데이터";
+
+  // 분류 옵션
+  var cats = Array.from(new Set(works.map(function (w) { return w.대분류; }).filter(Boolean))).sort();
+  cats.forEach(function (c) {
+    var o = document.createElement("option"); o.value = c; o.textContent = c; catEl.appendChild(o);
+  });
+
+  function render() {
+    var q = qEl.value.trim().toLowerCase();
+    var cat = catEl.value;
+    var minS = parseFloat(minEl.value);
+    var list = works.filter(function (w) {
+      if (cat && w.대분류 !== cat) return false;
+      if (w._total < minS) return false;
+      if (q) {
+        var hay = [w.제목, w.감독, w.장르, w.줄거리, (w.출연 || []).join(" "), w.대분류, w.소분류]
+          .join(" ").toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    if (sortEl.value === "title") list.sort(function (a, b) { return a.제목.localeCompare(b.제목, "ko"); });
+    else list.sort(function (a, b) { return b._total - a._total; });
+
+    rowsEl.innerHTML = "";
+    list.forEach(function (w, i) {
+      var tr = document.createElement("tr");
+      tr.className = "row";
+      var qualified = w._total >= threshold
+        ? '<span class="qualified">숏리스트</span>' : "";
+      tr.innerHTML =
+        '<td style="color:var(--muted);font-family:var(--mono)">' + (i + 1) + "</td>" +
+        '<td><span class="t-title">' + E.esc(w.제목) + "</span>" + qualified + "</td>" +
+        '<td class="t-cat">' + E.esc(w.대분류 || "-") + " / " + E.esc(w.소분류 || "-") + "</td>" +
+        "<td>" + E.esc(w.장르 || "-") + "</td>" +
+        "<td>" + E.esc(w.기간 || w.공개일 || "-") + "</td>" +
+        '<td>' + E.scoreChip(w._total) + ' <span style="font-family:var(--mono);color:var(--muted);font-size:12px">' + E.fmt(Math.round(w._total * 1000) / 1000) + "</span></td>" +
+        '<td class="chev">›</td>';
+      var detail = document.createElement("tr");
+      detail.className = "detail";
+      detail.style.display = "none";
+      detail.innerHTML = '<td colspan="7"><div class="detail-inner">' + E.detailHTML(w) + "</div></td>";
+      tr.addEventListener("click", function () {
+        var open = detail.style.display !== "none";
+        detail.style.display = open ? "none" : "table-row";
+        tr.classList.toggle("open", !open);
+      });
+      rowsEl.appendChild(tr);
+      rowsEl.appendChild(detail);
+    });
+    emptyEl.style.display = list.length ? "none" : "block";
+    document.getElementById("count").textContent = list.length + " / " + works.length + " 작품";
+  }
+
+  qEl.addEventListener("input", render);
+  catEl.addEventListener("change", render);
+  sortEl.addEventListener("change", render);
+  minEl.addEventListener("input", function () { minValEl.textContent = minEl.value; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

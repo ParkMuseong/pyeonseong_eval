@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>편성회의 Agent — 평가 결과</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span> · 평가 결과</a>
+    <nav class="nav">
+      <a href="index.html" data-page="index.html">홈</a>
+      <a href="longlist.html" data-page="longlist.html">롱리스트</a>
+      <a href="shortlist.html" data-page="shortlist.html">숏리스트</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Programming Meeting · Content Assessment</p>
+    <h1 id="heroTitle">신작·문화 콘텐츠 편성회의 평가 결과</h1>
+    <p>수집된 전체 후보(롱리스트)를 <b>화제성·독창성·근접성·영향성</b> 네 기준으로 1~5점 평가하고,
+       일정 점수 이상의 콘텐츠를 추려 숏리스트로 제시합니다.</p>
+  </section>
+
+  <section class="cards">
+    <a class="card" href="longlist.html">
+      <span class="k">01 — ALL CANDIDATES</span>
+      <h2>롱리스트</h2>
+      <p>수집·평가된 전체 작품 목록. 작품을 클릭하면 줄거리·출연진·평가 점수를 펼쳐 봅니다.</p>
+      <div class="go">전체 작품 보기</div>
+    </a>
+    <a class="card" href="shortlist.html">
+      <span class="k">02 — CURATED</span>
+      <h2>숏리스트</h2>
+      <p>총점 <b id="thLabel">3.5</b>점 이상만 추린 큐레이션. 제목·네 축 점수를 한눈에, 클릭하면 상세 정보.</p>
+      <div class="go">숏리스트 보기</div>
+    </a>
+  </section>
+
+  <h3 style="font-family:var(--serif);font-size:20px;margin:10px 0 14px">평가 기준 — 각 1~5점</h3>
+  <section class="criteria">
+    <div class="crit">
+      <h3><span class="badge">화제성</span></h3>
+      <p>많은 사람들이 반응할 것인가 — 주목 주제 / 갈등 요소 / 인물·소재 지명도 / 흥미 요소.</p>
+    </div>
+    <div class="crit">
+      <h3><span class="badge">독창성</span></h3>
+      <p>차별적 가치를 만들 수 있는가 — 독점 콘텐츠 권리 / 경쟁자 대비 차별성·전문성.</p>
+    </div>
+    <div class="crit">
+      <h3><span class="badge">근접성</span></h3>
+      <p>물리적·심리적 거리가 가까운가 — 소비 접근성 / 내용의 심리적 공감.</p>
+    </div>
+    <div class="crit">
+      <h3><span class="badge">영향성</span></h3>
+      <p>콘텐츠의 파급력이 있는가 — 즉각적·광범위한 영향 / 미디어 신뢰도 제고.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a href="longlist.html">롱리스트</a>
+    <a href="shortlist.html">숏리스트</a>
+    <span id="genFoot"></span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="assets/common.js"></script>
+<script>
+  (function () {
+    var d = window.PROGRAM_DATA || {};
+    if (d.month_label) document.getElementById("heroTitle").textContent =
+      d.month_label + " 신작·문화 콘텐츠 편성회의 평가 결과";
+    if (d.threshold != null) document.getElementById("thLabel").textContent = d.threshold;
+    document.getElementById("genFoot").textContent =
+      (d.generated_at ? "기준: " + d.generated_at + " · " : "") + "샘플 데이터";
+  })();
+</script>
+</body>
+</html>
