@@ -8,19 +8,8 @@
   "use strict";
 
   var AXES = ["화제성", "독창성", "근접성", "영향성"];
-  var FILTERS = ["검증판정", "유형", "세부유형", "장르", "국가"];
+  var FILTERS = ["유형", "세부유형", "장르", "국가"];
   var LS_KEY = "lle_eval_v1";
-
-  // 검증판정 → 배지 CSS 클래스
-  function verdictClass(v) {
-    v = String(v || "");
-    if (/이상없음/.test(v)) return "vd-ok";
-    if (/정정/.test(v)) return "vd-fix";
-    if (/재평가/.test(v)) return "vd-re";
-    if (/보류/.test(v)) return "vd-hold";
-    if (/제외/.test(v)) return "vd-out";
-    return "vd-etc";
-  }
 
   var DATA = (window.LONGLIST_DATA || []).slice();
   var META = window.LONGLIST_META || {};
@@ -226,31 +215,10 @@
 
   var win = META.window || {};
   document.getElementById("meta").textContent =
-    (win.start ? "윈도우 " + openDisplay(win.start) + "~" + openDisplay(win.end) + " · " : "") +
+    (win.start ? "평가기간 " + openDisplay(win.start) + "~" + openDisplay(win.end) + " · " : "") +
     "총 " + DATA.length + "개 작품 · 10점 척도";
   document.getElementById("genFoot").textContent =
     (META.generated_at ? "데이터 기준: " + META.generated_at + " · " : "") + "원본: " + (META.source || "");
-
-  // 검증 요약 배너 (summary + 제외항목)
-  (function buildVerifyBanner() {
-    var el = document.getElementById("verifyInfo");
-    if (!el) return;
-    var s = META.summary || {};
-    var order = ["total", "이상없음", "정정", "재평가", "제외", "보류"];
-    var labels = { total: "총", 이상없음: "이상없음", 정정: "정정", 재평가: "재평가", 제외: "제외", 보류: "보류" };
-    var chips = order.filter(function (k) { return s[k] != null; }).map(function (k) {
-      return '<span class="vsum-chip ' + (k === "total" ? "t" : verdictClass(k)) + '">' +
-        labels[k] + " <b>" + esc(s[k]) + "</b></span>";
-    }).join("");
-    var exHtml = "";
-    var ex = META.excluded || [];
-    if (ex.length) {
-      exHtml = '<div class="vsum-ex"><b>제외</b> ' + ex.map(function (e) {
-        return esc(e.콘텐츠명) + "(" + esc(e.사유 || "") + ")";
-      }).join(" · ") + "</div>";
-    }
-    el.innerHTML = '<div class="vsum-chips">' + chips + "</div>" + exHtml;
-  })();
 
   /* ---------- 필터 옵션 ---------- */
   FILTERS.forEach(function (f) {
@@ -357,32 +325,6 @@
     });
   }
 
-  // 검증 정보 (검증판정·검증사유·변경내역·검증메모·검증출처)
-  function verifyHTML(w) {
-    var out = '<div class="verify-box"><div class="vb-head">검증 <span class="vd ' + verdictClass(w.검증판정) + '">' +
-      esc(w.검증판정 || "-") + "</span>" + (w.검증 ? ' <span class="vb-state">' + esc(w.검증) + "</span>" : "") + "</div>";
-    if (w.검증사유) out += '<div class="vb-row"><b>검증사유</b> ' + esc(w.검증사유) + "</div>";
-    var ch = (w.변경내역 || []);
-    if (ch.length) {
-      out += '<div class="vb-row"><b>변경내역</b><ul class="vb-list">';
-      ch.forEach(function (c) {
-        out += "<li><b>" + esc(c.필드 || "") + "</b>: " +
-          esc(c.원본 || "") + ' <span class="arr">→</span> ' + esc(c.정정 || "") +
-          (c.사유 ? ' <span class="vb-why">(' + esc(c.사유) + ")</span>" : "") +
-          (c.출처 ? ' <a href="' + esc(c.출처) + '" target="_blank" rel="noopener">출처</a>' : "") + "</li>";
-      });
-      out += "</ul></div>";
-    }
-    if (w.검증메모) out += '<div class="vb-row"><b>검증메모</b> ' + esc(w.검증메모) + "</div>";
-    var src = (w.검증출처 || []);
-    if (src.length) {
-      out += '<div class="vb-row"><b>검증출처</b> ';
-      out += src.map(function (u, k) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">[' + (k + 1) + "]</a>"; }).join(" ");
-      out += "</div>";
-    }
-    return out + "</div>";
-  }
-
   // 사람 평가자별 축별 평가 사유 입력 (상세 영역)
   function reasonsHTML(i) {
     function col(person, reasonKey, label) {
@@ -417,7 +359,6 @@
 
       // 행1: 사람1 (병합 셀 포함)
       html += '<tr class="r-p1" data-work="' + i + '">';
-      html += '<td class="merged cat" rowspan="3"><span class="vd ' + verdictClass(w.검증판정) + '">' + esc(w.검증판정 || "-") + "</span></td>";
       html += '<td class="merged cat" rowspan="3">' + esc(w.유형 || "-") + "</td>";
       html += '<td class="merged cat" rowspan="3">' + esc(w.세부유형 || "-") + "</td>";
       html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w.콘텐츠명 || "-") + "</td>";
@@ -441,7 +382,7 @@
       html += "</tr>";
 
       // 상세 펼침 행
-      html += '<tr class="detail-row" id="detail-' + i + '" data-work="' + i + '" style="display:none"><td colspan="12">' +
+      html += '<tr class="detail-row" id="detail-' + i + '" data-work="' + i + '" style="display:none"><td colspan="11">' +
         '<div class="lle-detail"><dl class="dl">' +
         (w.순위 ? "<dt>AI 순위</dt><dd>" + esc(w.순위) + "위</dd>" : "") +
         "<dt>감독</dt><dd>" + esc(w.감독 || "-") + "</dd>" +
@@ -449,7 +390,6 @@
         "<dt>줄거리</dt><dd>" + esc(w.줄거리 || "-") + "</dd>" +
         "</dl>" +
         (w.평가사유 ? '<div class="reason-box"><b>AI 평가사유 —</b> ' + esc(w.평가사유) + "</div>" : "") +
-        verifyHTML(w) +
         reasonsHTML(i) +
         "</div></td></tr>";
     });
@@ -557,10 +497,10 @@
   }
   function exportCSV() {
     var idxs = visibleIndices();
-    var head = ["순위", "콘텐츠명", "검증판정", "유형", "세부유형", "장르", "국가", "공개일", "공개월주차", "플랫폼",
+    var head = ["순위", "콘텐츠명", "유형", "세부유형", "장르", "국가", "공개일", "공개월주차", "플랫폼",
       "평가자", "화제성", "독창성", "근접성", "영향성", "평점", "총점",
       "화제성사유", "독창성사유", "근접성사유", "영향성사유",
-      "감독", "출연진", "줄거리", "AI평가사유", "검증", "검증사유"];
+      "감독", "출연진", "줄거리", "AI평가사유"];
     var lines = [head.map(csvCell).join(",")];
 
     idxs.forEach(function (i) {
@@ -575,13 +515,13 @@
       rows.forEach(function (rw) {
         var rsn = rw.rsn || {};
         var line = [
-          w.순위, w.콘텐츠명, w.검증판정, w.유형, w.세부유형, w.장르, w.국가, w.공개일, ompub, w.플랫폼,
+          w.순위, w.콘텐츠명, w.유형, w.세부유형, w.장르, w.국가, w.공개일, ompub, w.플랫폼,
           rw.who,
           rw.sc.화제성, rw.sc.독창성, rw.sc.근접성, rw.sc.영향성,
           (rw.rate == null ? "" : fmt2(rw.rate)),
           (tot == null ? "" : fmt2(tot)),
           rsn.화제성 || "", rsn.독창성 || "", rsn.근접성 || "", rsn.영향성 || "",
-          w.감독, w.출연진, w.줄거리, w.평가사유, w.검증, w.검증사유
+          w.감독, w.출연진, w.줄거리, w.평가사유
         ];
         lines.push(line.map(csvCell).join(","));
       });
