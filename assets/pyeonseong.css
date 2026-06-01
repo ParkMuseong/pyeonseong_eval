@@ -54,7 +54,7 @@
 .verify.ai   { background: var(--paper-2); color: var(--ink-soft); border: 1px solid var(--line); }
 .verify .conf { opacity: .7; font-weight: 600; }
 
-.pick .reason { font-size: 13px; color: var(--ink-soft); line-height: 1.65; margin: 2px 0 0; }
+.pick .reason { font-family: var(--serif); font-size: 14px; color: var(--ink); line-height: 1.85; margin: 3px 0 0; max-width: 860px; }
 
 @media (max-width: 640px) {
   .pick { grid-template-columns: 1fr; gap: 6px; }

@@ -9,9 +9,9 @@
   --line: #e1dccd;         /* 종이 위 가는 괘선 */
   --line-soft: #ece7d9;
   --rule: #1f1b16;         /* 강한 괘선(헤드라인 밑줄) */
-  --paper: #faf7ef;        /* 페이지 바탕 */
-  --paper-2: #f2ede0;      /* 옅은 면 */
-  --surface: #fffdf8;      /* 카드/표 바탕 */
+  --paper: #f4ecd8;        /* 페이지 바탕 — 누런 종이 */
+  --paper-2: #ece2cb;      /* 옅은 면 */
+  --surface: #fbf5e6;      /* 카드/표 바탕 — 밝은 종이 */
   --amber: #9a6a2f;        /* 보조 강조(오커) */
   --amber-soft: #f1e7d3;
   --green: #2f5d44;        /* 주 강조(딥 그린) */
@@ -38,9 +38,13 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--ink);
-  background: var(--paper);
-  line-height: 1.55;
+  background-color: var(--paper);
+  /* 미세한 종이 질감(그레인) + 은은한 결 */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)' opacity='0.045'/%3E%3C/svg%3E");
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a { color: inherit; }

@@ -202,6 +202,7 @@
   border-top: 2px solid var(--rule);
   overflow: auto;
   background: var(--surface);
+  box-shadow: 0 12px 32px -26px rgba(60, 45, 20, 0.45);
 }
 table.lle {
   border-collapse: collapse;
@@ -364,48 +365,62 @@ table.lle tbody tr.detail-row td {
   padding: 0;
   border-top: none;
 }
-.lle-detail { padding: 16px 18px 20px; }
+.lle-detail { padding: 20px 22px 24px; }
 .lle-detail .dl {
   display: grid;
-  grid-template-columns: 70px 1fr;
-  gap: 8px 16px;
+  grid-template-columns: 76px 1fr;
+  gap: 11px 18px;
   font-size: 13px;
-  max-width: 920px;
+  max-width: 760px;
 }
 .lle-detail .dl dt {
   color: var(--green);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding-top: 2px;
 }
-.lle-detail .dl dd { margin: 0; color: var(--ink-soft); line-height: 1.65; }
+/* 줄거리·정보를 종이 위 본문처럼 — 명조 + 넉넉한 행간 */
+.lle-detail .dl dd {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.8;
+}
 .lle-detail .reason-box {
-  margin-top: 14px;
+  margin-top: 18px;
   background: var(--amber-soft);
   border-left: 3px solid var(--amber);
-  border-radius: 0 8px 8px 0;
-  padding: 12px 16px;
-  font-size: 13px;
-  color: #5b3a12;
+  border-radius: 0 4px 4px 0;
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #4a3211;
+  max-width: 860px;
 }
 .lle-detail .reason-box .rsn-title {
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--amber);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.lle-detail .reason-box .rsn-sec { margin-bottom: 11px; }
+.lle-detail .reason-box .rsn-sec { margin-bottom: 13px; }
 .lle-detail .reason-box .rsn-sec:last-child { margin-bottom: 0; }
 .lle-detail .reason-box .rsn-label {
+  font-family: var(--serif);
   font-weight: 700;
-  font-size: 13px;
-  color: #92400e;
-  margin-bottom: 3px;
+  font-size: 14px;
+  color: #7a4f15;
+  margin-bottom: 4px;
 }
+/* 평가사유 본문 — 신문 칼럼처럼 명조 + 넓은 행간 */
 .lle-detail .reason-box .rsn-body {
-  font-size: 13px;
-  line-height: 1.65;
-  color: #5b3a12;
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.85;
+  color: #4a3211;
 }
 
 /* 사람 평가 사유 입력 (상세 영역) */
