@@ -2,26 +2,28 @@
  *  편성회의 Agent — 공통 스타일
  * ========================================================================== */
 :root {
-  /* 에디토리얼(방송·뉴스룸) 팔레트 — 종이 톤 + 잉크 + 가는 괘선 */
-  --ink: #1f1b16;          /* 따뜻한 먹색 */
-  --ink-soft: #4c463c;
-  --muted: #8f897b;
-  --line: #e1dccd;         /* 종이 위 가는 괘선 */
-  --line-soft: #ece7d9;
-  --rule: #1f1b16;         /* 강한 괘선(헤드라인 밑줄) */
-  --paper: #faf7ef;        /* 페이지 바탕 */
-  --paper-2: #f2ede0;      /* 옅은 면 */
-  --surface: #fffdf8;      /* 카드/표 바탕 */
-  --amber: #9a6a2f;        /* 보조 강조(오커) */
-  --amber-soft: #f1e7d3;
-  --green: #2f5d44;        /* 주 강조(딥 그린) */
-  --green-soft: #e6ece7;
+  /* 뉴스룸 팔레트 — 화이트 + 블루 */
+  --ink: #0f172a;          /* slate-900 */
+  --ink-soft: #334155;     /* slate-700 */
+  --muted: #64748b;        /* slate-500 */
+  --line: #e2e8f0;         /* slate-200 가는 괘선 */
+  --line-soft: #f1f5f9;    /* slate-100 */
+  --rule: #0f172a;         /* 강한 괘선 */
+  --paper: #ffffff;        /* 페이지 바탕(흰색) */
+  --paper-2: #f1f5f9;      /* 옅은 쿨그레이 면 */
+  --surface: #ffffff;      /* 카드/표 바탕 */
+  --amber: #475569;        /* 보조(슬레이트) */
+  --amber-soft: #eef2f6;
+  --green: #1d4ed8;        /* 주 강조(블루) */
+  --green-soft: #eff6ff;   /* 블루 라이트 */
+  --blue: #1d4ed8;
+  --blue-deep: #1e3a8a;
 
-  /* 점수 스케일 색상 (1~5) — 차분하게 */
-  --s1: #b14a3f;
-  --s2: #b9763c;
-  --s3: #ad9540;
-  --s4: #5d8753;
+  /* 점수 스케일 색상 (1~5) */
+  --s1: #dc2626;
+  --s2: #ea7a3c;
+  --s3: #d4a72c;
+  --s4: #4f9e57;
   --s5: #2f6b46;
 
   --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
@@ -53,10 +55,10 @@ a { color: inherit; }
 
 /* ---- 마스트헤드 / nav (에디토리얼) ---- */
 .topbar {
-  border-bottom: 2px solid var(--rule);
+  border-bottom: 3px solid var(--blue);
   position: sticky;
   top: 0;
-  background: rgba(250, 247, 239, 0.94);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
   z-index: 40;
 }
