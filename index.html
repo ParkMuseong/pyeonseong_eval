@@ -6,8 +6,8 @@
 <title>평가 롱리스트 확인 — 편성회의 Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
-<link rel="stylesheet" href="assets/style.css?v=20260601g" />
-<link rel="stylesheet" href="assets/longlist_eval.css?v=20260601g" />
+<link rel="stylesheet" href="assets/style.css?v=20260601h" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260601h" />
 </head>
 <body>
 <header class="topbar">
@@ -26,6 +26,9 @@
     <div class="meta" id="meta"></div>
   </div>
 
+  <!-- 카테고리 전환 탭 (콘텐츠 / 공연·전시 / 스포츠) -->
+  <div class="cat-tabs" id="catTabs"></div>
+
   <!-- 평가자 로그인 상태 바 -->
   <div class="authbar" id="authbar">
     <span class="auth-dot" id="authDot"></span>
@@ -37,14 +40,14 @@
 
   <!-- 상단 카테고리 필터 -->
   <div class="filterbar">
-    <div class="fgroup"><label>유형</label><select id="f-유형"></select></div>
-    <div class="fgroup"><label>국가</label>
+    <div class="fgroup" id="fg-유형"><label id="lbl-유형">유형</label><select id="f-유형"></select></div>
+    <div class="fgroup" id="fg-국가"><label>국가</label>
       <div class="ms" id="ms-국가">
         <button type="button" class="ms-btn" id="ms-국가-btn" aria-haspopup="true" aria-expanded="false">전체</button>
         <div class="ms-panel" id="ms-국가-panel" hidden></div>
       </div>
     </div>
-    <div class="fgroup"><label>공개월·주차</label><select id="f-공개월"></select></div>
+    <div class="fgroup" id="fg-공개월"><label>공개월·주차</label><select id="f-공개월"></select></div>
     <div class="fgroup">
       <label>AI 평점 ≥ <b id="f-ai-val">전체</b></label>
       <input type="range" id="f-ai" min="0" max="9" step="0.5" value="0" />
@@ -59,38 +62,12 @@
 
   <div class="lle-wrap">
     <table class="lle">
-      <colgroup>
-        <col style="width:72px" />
-        <col style="width:140px" />
-        <col style="width:180px" />
-        <col style="width:120px" />
-        <col style="width:80px" />
-        <col style="width:116px" />
-        <col style="width:60px" />
-        <col style="width:60px" />
-        <col style="width:60px" />
-        <col style="width:60px" />
-        <col style="width:80px" />
-        <col style="width:80px" />
-      </colgroup>
+      <colgroup id="lle-colgroup"></colgroup>
       <thead>
         <tr class="title-row">
-          <th colspan="12">편성회의 평가 롱리스트 · 사람 평가자 2인 입력 + AI 평가</th>
+          <th id="lle-title" colspan="12">편성회의 평가 롱리스트 · 사람 평가자 2인 입력 + AI 평가</th>
         </tr>
-        <tr class="col-row">
-          <th>유형</th>
-          <th>세부유형</th>
-          <th>콘텐츠명</th>
-          <th>장르</th>
-          <th>공개일</th>
-          <th>플랫폼</th>
-          <th class="axis">화제성</th>
-          <th class="axis">독창성</th>
-          <th class="axis">근접성</th>
-          <th class="axis">영향성</th>
-          <th>평점</th>
-          <th class="total">총점</th>
-        </tr>
+        <tr class="col-row" id="lle-colrow"></tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
@@ -140,9 +117,9 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=20260601g"></script>
-<script src="longlist_data.js?v=20260601g"></script>
-<script src="assets/common.js?v=20260601g"></script>
-<script src="assets/longlist_eval.js?v=20260601g"></script>
+<script src="config.js?v=20260601h"></script>
+<script src="longlist_data.js?v=20260601h"></script>
+<script src="assets/common.js?v=20260601h"></script>
+<script src="assets/longlist_eval.js?v=20260601h"></script>
 </body>
 </html>

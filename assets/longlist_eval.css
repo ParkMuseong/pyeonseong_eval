@@ -3,6 +3,50 @@
  *  (참조: 평가 결과.png — 초록 헤더 / 필터 아이콘 / 행 묶음 / 연노랑 총점)
  * ========================================================================== */
 
+/* ---- 카테고리 전환 탭 ---- */
+.cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0;
+}
+.cat-tab {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  background: var(--paper-2);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 18px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color .12s, background .12s;
+}
+.cat-tab:hover { color: var(--ink); }
+.cat-tab.active {
+  color: var(--green);
+  background: var(--paper);
+  border-color: var(--line);
+  border-bottom: 1px solid var(--paper);
+  box-shadow: inset 0 2px 0 var(--green);
+}
+.cat-tab .cat-n {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+.cat-tab.active .cat-n { background: var(--green); color: #fff; }
+
 /* ---- 상단 카테고리 필터 바 (에디토리얼) ---- */
 .filterbar {
   display: flex;
