@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>월간 편성표 — 편성회의 Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
+<link rel="stylesheet" href="assets/style.css" />
+<link rel="stylesheet" href="assets/longlist_eval.css" />
+<link rel="stylesheet" href="assets/pyeonseong.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span></a>
+    <nav class="nav">
+      <a href="index.html" data-page="index.html">평가 확인</a>
+      <a href="pyeonseong.html" data-page="pyeonseong.html">월 편성</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="section-head">
+    <h1>월간 편성표</h1>
+    <div class="meta">주차별 영상 · 공연/전시/이벤트 · 스포츠/게임 + 대안</div>
+  </div>
+
+  <div class="month-tabs" id="monthTabs"></div>
+  <div id="weeks"></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span id="genFoot"></span>
+  </div>
+</footer>
+
+<!-- 접근 암호 게이트 -->
+<div class="gate-back" id="gateBack">
+  <div class="gate-box" role="dialog" aria-modal="true">
+    <h2>접근 암호</h2>
+    <p class="login-sub">이 페이지는 보호되어 있습니다.<br />공통 암호를 입력하세요.</p>
+    <label class="login-field">암호<input id="gatePw" type="password" autocomplete="off" /></label>
+    <div class="login-msg" id="gateMsg"></div>
+    <button class="btn" id="gateBtn" type="button">입장</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="pyeonseong_data.js"></script>
+<script src="assets/pyeonseong.js"></script>
+</body>
+</html>
