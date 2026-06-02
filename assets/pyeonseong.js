@@ -208,7 +208,7 @@
         var it = row.it, r = row.r, w = it.w;
         var rank = String(idx + 1) + "등";
         var sc = SAVED[it.name] || {};
-        html += '<div class="pick rank-' + (idx + 1) + '">' +
+        html += '<div class="pick">' +
           '<span class="rank">' + esc(rank) + "</span>" +
           '<div class="body">' +
             '<div class="line1">' +
