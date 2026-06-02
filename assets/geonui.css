@@ -1,0 +1,82 @@
+/* =============================================================================
+ *  편성회의 Agent — 실무자 건의 페이지 전용 스타일 (정제된 종이 · 뉴스룸)
+ * ========================================================================== */
+
+/* ---- 작성 폼 (종이 카드) ---- */
+.geon-form {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--rule);
+  border-radius: 0 0 var(--r) var(--r);
+  background: var(--surface);
+  box-shadow: var(--sh-md);
+  padding: 22px 24px;
+  margin: 4px 0 30px;
+}
+.gf-row { display: grid; grid-template-columns: 100px 1fr; gap: 12px 18px; align-items: start; margin-bottom: 16px; }
+.gf-row:last-of-type { margin-bottom: 0; }
+.gf-row > label {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 10px;
+}
+.gf-row input, .gf-row textarea {
+  width: 100%; font-family: var(--sans); font-size: 14px; color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 13px;
+  background: var(--surface-2); outline: none;
+  transition: border-color .12s var(--ease), box-shadow .12s var(--ease);
+}
+.gf-row input:focus, .gf-row textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+.gf-row textarea { min-height: 104px; resize: vertical; line-height: 1.65; }
+
+/* 유형 토글 (세그먼트 컨트롤) */
+.kind-tabs { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--surface-2); box-shadow: var(--sh-sm); }
+.kind-tab {
+  font-family: var(--sans); font-size: 13px; font-weight: 700;
+  padding: 10px 18px; border: none; background: none; color: var(--muted); cursor: pointer;
+  transition: background .14s var(--ease), color .14s var(--ease);
+}
+.kind-tab + .kind-tab { border-left: 1px solid var(--line); }
+.kind-tab:hover { color: var(--ink); }
+.kind-tab.active { background: var(--green); color: #fff; }
+
+.gf-actions { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.gf-actions .hint { font-size: 11.5px; color: var(--muted); }
+.gf-actions .sync-status { margin-left: auto; }
+
+/* ---- 건의 목록 ---- */
+.geon-item {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--sh-sm);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.gi-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 9px; }
+.gi-kind {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .02em;
+  padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap;
+}
+.gi-kind.feature { background: var(--green-soft); color: #1c3b2b; border-color: #c4d3c8; }
+.gi-kind.ux { background: var(--amber-soft); color: #7a531f; border-color: #e0cda6; }
+.gi-author { font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+.gi-time { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.gi-status {
+  margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 3px 11px; border-radius: var(--r-sm); cursor: pointer; user-select: none;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-soft);
+  transition: background .12s var(--ease);
+}
+.gi-status[data-s="검토중"] { background: var(--amber-soft); color: #7a531f; border-color: #e0cda6; }
+.gi-status[data-s="완료"] { background: var(--green); color: #fff; border-color: var(--green); }
+.gi-body {
+  font-family: var(--serif); font-size: 15px; line-height: 1.85; color: var(--ink);
+  white-space: pre-wrap; word-break: break-word;
+}
+.gi-foot { display: flex; justify-content: flex-end; margin-top: 8px; }
+.gi-del { border: none; background: none; color: var(--muted); font-size: 12px; cursor: pointer; }
+.gi-del:hover { color: var(--s1); text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .gf-row { grid-template-columns: 1fr; gap: 6px; }
+  .gf-row > label { padding-top: 0; }
+}

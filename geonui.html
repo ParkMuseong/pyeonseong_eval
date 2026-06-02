@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실무자 건의 — 편성회의 Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
+<link rel="stylesheet" href="assets/style.css?v=20260604a" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260604a" />
+<link rel="stylesheet" href="assets/geonui.css?v=20260604a" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap inner">
+    <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span></a>
+    <nav class="nav">
+      <a href="index.html" data-page="index.html">평가 확인</a>
+      <a href="pyeonseong.html" data-page="pyeonseong.html">월 편성</a>
+      <a href="geonui.html" data-page="geonui.html">실무자 건의</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="section-head">
+    <h1>실무자 건의</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <!-- 작성 폼 -->
+  <div class="geon-form">
+    <div class="gf-row">
+      <label>작성자</label>
+      <input id="gName" type="text" autocomplete="off" placeholder="이름을 입력하세요" />
+    </div>
+    <div class="gf-row">
+      <label>건의 유형</label>
+      <div class="kind-tabs" id="kindTabs">
+        <button type="button" class="kind-tab active" data-kind="feature">기능 건의</button>
+        <button type="button" class="kind-tab" data-kind="ux">사용자 편의 건의</button>
+      </div>
+    </div>
+    <div class="gf-row">
+      <label>건의 내용</label>
+      <textarea id="gBody" placeholder="예) ○○ 화면의 △△ 버튼이 잘 안 보이니 수정해주세요"></textarea>
+    </div>
+    <div class="gf-actions">
+      <span class="hint">Ctrl/⌘ + Enter 로 빠르게 등록</span>
+      <span class="sync-status" id="syncStatus"></span>
+      <button class="btn" id="submitBtn" type="button">건의 등록</button>
+    </div>
+  </div>
+
+  <!-- 유형 필터 -->
+  <div class="cat-tabs" id="filterTabs">
+    <button type="button" class="cat-tab active" data-filter="all">전체 <span class="cat-n" id="n-all">0</span></button>
+    <button type="button" class="cat-tab" data-filter="feature">기능 건의 <span class="cat-n" id="n-feature">0</span></button>
+    <button type="button" class="cat-tab" data-filter="ux">사용자 편의 건의 <span class="cat-n" id="n-ux">0</span></button>
+  </div>
+
+  <div id="list"></div>
+  <div class="empty" id="empty" style="display:none">등록된 건의가 없습니다. 첫 건의를 남겨보세요.</div>
+</main>
+
+<!-- 접근 암호 게이트 -->
+<div class="gate-back" id="gateBack">
+  <div class="gate-box" role="dialog" aria-modal="true">
+    <h2>접근 암호</h2>
+    <p class="login-sub">이 페이지는 보호되어 있습니다.<br />공통 암호를 입력하세요.</p>
+    <label class="login-field">암호<input id="gatePw" type="password" autocomplete="off" /></label>
+    <div class="login-msg" id="gateMsg"></div>
+    <button class="btn" id="gateBtn" type="button">입장</button>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <span id="genFoot"></span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=20260604a"></script>
+<script src="assets/common.js?v=20260604a"></script>
+<script src="assets/geonui.js?v=20260604a"></script>
+</body>
+</html>
