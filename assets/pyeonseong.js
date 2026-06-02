@@ -147,15 +147,18 @@
     }
     return any ? out : '<div class="rz-line">' + esc(text) + "</div>";
   }
-  /* ---------- 평가자 평가사유: 축별 입력값을 줄바꿈 ---------- */
-  function personReasonLines(obj) {
-    if (!obj) return '<div class="rz-empty">입력 없음</div>';
+  /* ---------- 평가자 평가사유: 축별 [축 점수] + 사유 (AI 양식과 동일) ---------- */
+  function personReasonLines(reasonObj, scoreObj) {
+    reasonObj = reasonObj || {};
+    scoreObj = scoreObj || {};
     var out = "", any = false;
     AXES.forEach(function (a) {
-      var v = (obj[a] == null) ? "" : String(obj[a]).trim();
-      if (!v) return;
+      var sv = (scoreObj[a] == null) ? "" : String(scoreObj[a]).trim();
+      var rv = (reasonObj[a] == null) ? "" : String(reasonObj[a]).trim();
+      if (!sv && !rv) return;                       // 점수·사유 모두 없으면 생략
       any = true;
-      out += '<div class="rz-line"><b>[' + esc(a) + "]</b> " + esc(v) + "</div>";
+      var label = sv ? (a + " " + sv) : a;          // [화제성 8] 형태
+      out += '<div class="rz-line"><b>[' + esc(label) + "]</b>" + (rv ? " " + esc(rv) : "") + "</div>";
     });
     return any ? out : '<div class="rz-empty">입력 없음</div>';
   }
@@ -216,9 +219,10 @@
         var it = row.it, r = row.r, w = it.w;
         var rank = String(idx + 1) + "등";
         var sc = SAVED[it.name] || {};
-        html += '<div class="pick">' +
+        var catCls = it.분야 === "영상" ? "vid" : (it.분야 === "스포츠" ? "spo" : "art");
+        html += '<div class="pick rank-' + (idx + 1) + '">' +
           '<span class="c-rank"><b class="rank">' + esc(rank) + "</b></span>" +
-          '<span class="c-cat">' + esc(it.분야) + "</span>" +
+          '<span class="c-cat c-cat--' + catCls + '">' + esc(it.분야) + "</span>" +
           '<span class="c-type">' + esc(it.카테고리) + "</span>" +
           '<span class="c-name"><span class="chev">▸</span>' + esc(it.name) + "</span>" +
           '<span class="c-date">' + esc(openDisplay(it.date)) + "</span>" +
@@ -227,8 +231,8 @@
             '<div class="score-break">AI ' + fmt2(r.ai) + " · 평가자1 " + fmt2(r.p1) + " · 평가자2 " + fmt2(r.p2) + "</div>" +
             '<div class="rz-grid">' +
               '<div class="rz-col"><div class="rz-h ai">AI 평가사유</div>' + aiReasonLines(w.평가사유) + "</div>" +
-              '<div class="rz-col"><div class="rz-h">평가자1 평가사유</div>' + personReasonLines(sc.r1) + "</div>" +
-              '<div class="rz-col"><div class="rz-h">평가자2 평가사유</div>' + personReasonLines(sc.r2) + "</div>" +
+              '<div class="rz-col"><div class="rz-h">평가자1 평가사유</div>' + personReasonLines(sc.r1, sc.p1) + "</div>" +
+              '<div class="rz-col"><div class="rz-h">평가자2 평가사유</div>' + personReasonLines(sc.r2, sc.p2) + "</div>" +
             "</div>" +
           "</div>" +
         "</div>";
