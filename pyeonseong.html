@@ -6,9 +6,9 @@
 <title>월간 편성표 — 편성회의 Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
-<link rel="stylesheet" href="assets/style.css?v=20260601g" />
-<link rel="stylesheet" href="assets/longlist_eval.css?v=20260601g" />
-<link rel="stylesheet" href="assets/pyeonseong.css?v=20260601g" />
+<link rel="stylesheet" href="assets/style.css?v=20260602b" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260602b" />
+<link rel="stylesheet" href="assets/pyeonseong.css?v=20260602b" />
 </head>
 <body>
 <header class="topbar">
@@ -24,7 +24,7 @@
 <main class="wrap">
   <div class="section-head">
     <h1>월간 편성표</h1>
-    <div class="meta">주차별 영상 · 공연/전시/이벤트 · 스포츠/게임 + 대안</div>
+    <div class="meta">주차별 총점 순위 · 평가 롱리스트 점수와 실시간 연동 <span id="syncStatus" class="sync-status" style="margin-left:8px"></span></div>
   </div>
 
   <div class="month-tabs" id="monthTabs"></div>
@@ -48,8 +48,9 @@
   </div>
 </div>
 
-<script src="config.js?v=20260601g"></script>
-<script src="pyeonseong_data.js?v=20260601g"></script>
-<script src="assets/pyeonseong.js?v=20260601g"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=20260602b"></script>
+<script src="longlist_data.js?v=20260602b"></script>
+<script src="assets/pyeonseong.js?v=20260602b"></script>
 </body>
 </html>
