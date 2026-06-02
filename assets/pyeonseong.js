@@ -108,7 +108,7 @@
 
   /* ---------- 작품 평탄화 (3개 카테고리 → 단일 목록) ---------- */
   function fieldLabel(ds) { return ds.key === "콘텐츠" ? "영상" : ds.label; }
-  function catLabel(ds, w) { return (ds.key === "콘텐츠" ? (w.유형 || "") : (w.분류 || "")) || "-"; }
+  function catLabel(ds, w) { return (w.유형 || w.분류 || w.종목 || "") || "-"; }
   function dateVal(ds, w) { return w[ds.opendateField || "공개일"] || ""; }
 
   var FLAT = [];
