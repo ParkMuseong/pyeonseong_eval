@@ -283,11 +283,21 @@ a { color: inherit; }
 }
 .section-head .meta {
   font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
   color: var(--muted);
   text-align: right;
   padding-bottom: 5px;
+}
+/* 데이트라인 마커 — 신문 발행정보 느낌 */
+.section-head .meta:not(:empty)::before {
+  content: "";
+  display: inline-block;
+  width: 6px; height: 6px;
+  margin-right: 8px;
+  background: var(--green);
+  border-radius: 1px;
+  vertical-align: middle;
 }
 
 /* ---- Toolbar (filters) ---- */
