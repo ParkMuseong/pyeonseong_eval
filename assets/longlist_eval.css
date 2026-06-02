@@ -16,24 +16,24 @@
   appearance: none;
   border: 1px solid var(--line);
   border-bottom: none;
-  background: var(--paper-2);
+  background: linear-gradient(180deg, #efe6d3, #e6dcc6);
   color: var(--muted);
   font: inherit;
   font-weight: 600;
   font-size: 14px;
-  padding: 9px 18px;
-  border-radius: 8px 8px 0 0;
+  padding: 10px 20px;
+  border-radius: 10px 10px 0 0;
   cursor: pointer;
   margin-bottom: -1px;
-  transition: color .12s, background .12s;
+  transition: color .16s var(--ease), background .16s var(--ease), transform .16s var(--ease);
 }
-.cat-tab:hover { color: var(--ink); }
+.cat-tab:hover { color: var(--ink); transform: translateY(-1px); }
 .cat-tab.active {
   color: var(--green);
-  background: var(--paper);
+  background: var(--surface);
   border-color: var(--line);
-  border-bottom: 1px solid var(--paper);
-  box-shadow: inset 0 2px 0 var(--green);
+  border-bottom: 1px solid var(--surface);
+  box-shadow: inset 0 3px 0 var(--green), var(--sh-sm);
 }
 .cat-tab .cat-n {
   display: inline-block;
@@ -72,17 +72,29 @@
   font-family: var(--sans);
   font-size: 13px;
   border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
   min-width: 134px;
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--ink);
   outline: none;
   text-align: left;
   cursor: pointer;
+  box-shadow: var(--sh-sm);
+  transition: border-color .14s var(--ease), box-shadow .14s var(--ease);
 }
+.filterbar select {
+  /* 커스텀 화살표 */
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23908a7b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+.filterbar select:hover,
+.filterbar .ms-btn:hover { border-color: var(--muted); }
 .filterbar select:focus,
-.filterbar .ms-btn:focus { border-color: var(--ink); }
+.filterbar .ms-btn:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
 .filterbar input[type="range"] {
   width: 140px;
   accent-color: var(--green);
@@ -129,20 +141,22 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   border: 1px solid var(--ink);
-  border-radius: 2px;
+  border-radius: var(--r-sm);
   padding: 9px 16px;
-  background: var(--ink);
+  background: linear-gradient(180deg, #2c261d, var(--ink));
   color: var(--paper);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, transform 0.1s;
+  box-shadow: var(--sh-sm);
+  transition: background 0.14s var(--ease), color 0.14s var(--ease), transform 0.1s var(--ease), box-shadow 0.14s var(--ease);
 }
-.btn:hover { background: #000; }
-.btn:active { transform: translateY(1px); }
+.btn:hover { background: #000; box-shadow: var(--sh-md); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); box-shadow: var(--sh-sm); }
 .btn.ghost {
-  background: transparent;
+  background: var(--surface-2);
   color: var(--ink);
+  border-color: var(--line);
 }
-.btn.ghost:hover { background: var(--paper-2); }
+.btn.ghost:hover { background: #fff; border-color: var(--ink); }
 
 /* ---- 접근 암호 게이트 ---- */
 .gate-back {
@@ -153,10 +167,11 @@
 }
 .gate-back.hide { display: none; }
 .gate-box {
-  background: var(--surface); border: 1px solid var(--ink);
-  border-top: 3px solid var(--rule); border-radius: 3px;
-  width: 100%; max-width: 360px; padding: 30px 28px 24px;
-  box-shadow: 0 30px 80px -34px rgba(0,0,0,0.3);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--green); border-radius: var(--r);
+  width: 100%; max-width: 360px; padding: 32px 28px 26px;
+  box-shadow: var(--sh-lg);
   text-align: left;
 }
 .gate-box h2 { font-family: var(--serif); font-weight: 700; margin: 0 0 8px; font-size: 24px; }
@@ -177,13 +192,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  margin: 4px 0 4px;
+  padding: 11px 16px;
+  margin: 4px 0;
   border: 1px solid var(--line);
-  border-radius: 2px;
-  background: var(--paper-2);
+  border-radius: var(--r-sm);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--sh-sm);
   font-size: 13px;
 }
+.authbar.on { border-color: #b9c9bd; }
 .authbar .auth-dot {
   width: 9px; height: 9px; border-radius: 50%;
   background: #c4c4c4;
@@ -205,11 +222,12 @@
 .login-back.show { display: flex; }
 .login-box {
   position: relative;
-  background: var(--surface); border: 1px solid var(--ink);
-  border-top: 3px solid var(--rule); border-radius: 3px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--green); border-radius: var(--r);
   width: 100%; max-width: 380px;
-  padding: 28px 26px 22px;
-  box-shadow: 0 30px 80px -30px rgba(0,0,0,0.5);
+  padding: 30px 26px 24px;
+  box-shadow: var(--sh-lg);
 }
 .login-box h2 { font-family: var(--serif); font-weight: 700; margin: 0 0 8px; font-size: 24px; }
 .login-sub { margin: 0 0 18px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
@@ -243,10 +261,11 @@
 /* ============================ 평가 테이블 (에디토리얼) ============================ */
 .lle-wrap {
   border: 1px solid var(--line);
-  border-top: 2px solid var(--rule);
+  border-top: 3px solid var(--rule);
+  border-radius: 0 0 var(--r) var(--r);
   overflow: auto;
   background: var(--surface);
-  box-shadow: 0 12px 32px -26px rgba(60, 45, 20, 0.45);
+  box-shadow: var(--sh-md);
 }
 table.lle {
   border-collapse: collapse;
@@ -258,13 +277,13 @@ table.lle {
 
 /* 타이틀(마스트헤드) 행 — 잉크 바 + 명조 */
 table.lle thead .title-row th {
-  background: var(--ink);
+  background: linear-gradient(180deg, #2b251c, var(--ink));
   color: var(--paper);
   font-family: var(--serif);
   font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  padding: 11px 8px;
+  font-size: 14.5px;
+  letter-spacing: 0.10em;
+  padding: 13px 8px;
   text-align: center;
   border: none;
 }
@@ -336,9 +355,9 @@ table.lle tbody td.platform { color: var(--ink-soft); font-size: 11.5px; }
 table.lle tbody td.total-cell {
   font-family: var(--mono);
   font-weight: 700;
-  font-size: 15px;
-  background: var(--paper-2);
-  color: var(--ink);
+  font-size: 15.5px;
+  background: linear-gradient(180deg, var(--amber-soft), #ece0c6);
+  color: #6e4a18;
   border-left: 2px solid var(--rule);
 }
 
@@ -362,10 +381,13 @@ table.lle input.score-in {
 table.lle input.score-in::-webkit-outer-spin-button,
 table.lle input.score-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 table.lle input.score-in {
-  border-radius: 2px;
+  border-radius: var(--r-sm);
   border-color: var(--line);
+  background: var(--surface-2);
+  transition: border-color .12s var(--ease), box-shadow .12s var(--ease), background .12s var(--ease);
 }
-table.lle input.score-in:focus { border-color: var(--ink); background: #fff; }
+table.lle input.score-in:hover:not(:disabled) { border-color: var(--muted); }
+table.lle input.score-in:focus { border-color: var(--green); background: #fff; box-shadow: 0 0 0 3px var(--green-soft); }
 table.lle input.score-in.invalid { border-color: var(--s1); background: #fbeceb; }
 table.lle input.score-in:disabled {
   background: var(--paper-2); color: #b6b0a3; cursor: not-allowed; border-color: var(--line-soft);
