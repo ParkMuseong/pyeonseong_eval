@@ -202,25 +202,30 @@
 
       var period = weekPeriod(mo.monthSort < 9999 ? mo.monthSort : null, wk.weekSort < 99 ? wk.weekSort : null);
       html += '<div class="week"><div class="week-head"><span class="w">' + esc(label + " " + wk.label) +
-        '</span><span class="period">' + esc(period) + "</span></div>";
+        '</span><span class="period">' + esc(period) + "</span></div>" +
+        '<div class="pick-head">' +
+          '<span class="c-rank">등수</span>' +
+          '<span class="c-cat">카테고리</span>' +
+          '<span class="c-type">유형·분류</span>' +
+          '<span class="c-name">콘텐츠명</span>' +
+          '<span class="c-date">공개일자</span>' +
+          '<span class="c-score">총 평점</span>' +
+        "</div>";
 
       top.forEach(function (row, idx) {
         var it = row.it, r = row.r, w = it.w;
         var rank = String(idx + 1) + "등";
         var sc = SAVED[it.name] || {};
         html += '<div class="pick">' +
-          '<span class="rank">' + esc(rank) + "</span>" +
-          '<div class="body">' +
-            '<div class="line1">' +
-              '<span class="title">' + esc(it.name) + "</span>" +
-              '<span class="field">' + esc(it.분야) + "</span>" +
-              '<span class="cat">' + esc(it.카테고리) + "</span>" +
-              '<span class="date">' + esc(openDisplay(it.date)) + "</span>" +
-              '<span class="score">총점 ' + fmt2(r.total) + "</span>" +
-              '<span class="rsn-toggle">평가사유 ▾</span>' +
-            "</div>" +
+          '<span class="c-rank"><b class="rank">' + esc(rank) + "</b></span>" +
+          '<span class="c-cat">' + esc(it.분야) + "</span>" +
+          '<span class="c-type">' + esc(it.카테고리) + "</span>" +
+          '<span class="c-name"><span class="chev">▸</span>' + esc(it.name) + "</span>" +
+          '<span class="c-date">' + esc(openDisplay(it.date)) + "</span>" +
+          '<span class="c-score">' + fmt2(r.total) + "</span>" +
+          '<div class="eval-reasons" hidden>' +
             '<div class="score-break">AI ' + fmt2(r.ai) + " · 평가자1 " + fmt2(r.p1) + " · 평가자2 " + fmt2(r.p2) + "</div>" +
-            '<div class="eval-reasons" hidden>' +
+            '<div class="rz-grid">' +
               '<div class="rz-col"><div class="rz-h ai">AI 평가사유</div>' + aiReasonLines(w.평가사유) + "</div>" +
               '<div class="rz-col"><div class="rz-h">평가자1 평가사유</div>' + personReasonLines(sc.r1) + "</div>" +
               '<div class="rz-col"><div class="rz-h">평가자2 평가사유</div>' + personReasonLines(sc.r2) + "</div>" +
@@ -258,12 +263,12 @@
       if (b) renderMonth(b.getAttribute("data-m"));
     });
 
-    // 작품 클릭 → 평가사유(AI·평가자1·2) 펼침/접기
+    // 행 클릭 → 평가사유(AI·평가자1·2) 펼침/접기 (펼친 영역 내부 클릭은 무시)
     weeksEl.addEventListener("click", function (e) {
-      var line = e.target.closest ? e.target.closest(".pick .line1") : null;
-      if (!line) return;
-      var pick = line.closest(".pick");
-      var box = pick && pick.querySelector(".eval-reasons");
+      if (e.target.closest && e.target.closest(".eval-reasons")) return;
+      var pick = e.target.closest ? e.target.closest(".pick") : null;
+      if (!pick) return;
+      var box = pick.querySelector(".eval-reasons");
       if (!box) return;
       var open = !box.hasAttribute("hidden");
       if (open) box.setAttribute("hidden", ""); else box.removeAttribute("hidden");
