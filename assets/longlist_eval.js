@@ -18,7 +18,7 @@
   if (!DATASETS || !DATASETS.length) {
     DATASETS = [{
       key: "콘텐츠", label: "콘텐츠", nameField: "콘텐츠명",
-      country: true, opendate: true, filterField: "유형",
+      country: true, opendate: true, opendateField: "공개일", filterField: "유형",
       cols: [
         { f: "유형", label: "유형" }, { f: "세부유형", label: "세부유형" },
         { f: "콘텐츠명", label: "콘텐츠명" }, { f: "장르", label: "장르" },
@@ -29,10 +29,58 @@
     }];
   }
 
+  /* ---------- 통합(전체) 데이터셋 합성 ----------
+   * 영상(콘텐츠)·공연전시·스포츠를 한 탭에 모은다.
+   * 각 작품의 카테고리·유형/분류·시작일(공개일 또는 기간 시작)을 통합 컬럼으로 노출.
+   * 입력 상태는 콘텐츠명 기준 공통 저장소를 쓰므로 개별 탭과 자동 연동된다. */
+  function buildAllDataset(dss) {
+    var works = [];
+    dss.forEach(function (ds) {
+      var odf = ds.opendateField || (ds.opendate ? "공개일" : null);
+      ds.works.forEach(function (w) {
+        var copy = {};
+        for (var k in w) { if (Object.prototype.hasOwnProperty.call(w, k)) copy[k] = w[k]; }
+        copy.카테고리 = ds.label;
+        copy.유형분류 = w.유형 || w.분류 || "";
+        // 기간("2026-05-19 ~ 2026-10-25")·공개일 모두 선행 날짜를 시작일로 사용
+        var od = odf ? String(w[odf] || "") : "";
+        var dm = od.match(/\d{4}-\d{1,2}(?:-\d{1,2})?/);
+        copy.시작일 = dm ? dm[0] : od;
+        works.push(copy);
+      });
+    });
+    return {
+      key: "전체", label: "전체", nameField: "콘텐츠명",
+      country: false, opendate: true, opendateField: "시작일", filterField: "카테고리",
+      cols: [
+        { f: "카테고리", label: "카테고리" }, { f: "유형분류", label: "유형·분류" },
+        { f: "콘텐츠명", label: "콘텐츠명" }, { f: "시작일", label: "시작일" }
+      ],
+      detail: [
+        { f: "장르", label: "장르" }, { f: "플랫폼", label: "플랫폼" },
+        { f: "감독", label: "감독" }, { f: "출연진", label: "출연진" }, { f: "줄거리", label: "줄거리" },
+        { f: "장소지역", label: "장소·지역" }, { f: "개최지", label: "개최지" }, { f: "기간", label: "기간" },
+        { f: "주최기획", label: "주최·기획" }, { f: "주최", label: "주최" },
+        { f: "출연작가", label: "출연·작가" }, { f: "참가선수", label: "참가·선수" }, { f: "개요", label: "개요" }
+      ],
+      meta: {
+        generated_at: (dss[0] && dss[0].meta && dss[0].meta.generated_at) || "",
+        source: "전체 통합", count: works.length, window: {}
+      },
+      works: works
+    };
+  }
+  if (DATASETS.length > 1) {
+    DATASETS = [buildAllDataset(DATASETS)].concat(DATASETS);
+  }
+
   /* ---------- 현재 데이터셋 상태 (loadDataset 에서 교체) ---------- */
   var activeIdx = 0;
-  var DS, DATA, META, COLS, DETAIL, NAMEFIELD, FILTERFIELD, HAS_COUNTRY, HAS_OPENDATE, COLSPAN;
-  var LS_KEY, saved = {}, state = [], indexByName = {};
+  var DS, DATA, META, COLS, DETAIL, NAMEFIELD, FILTERFIELD, OPENDATEFIELD, HAS_COUNTRY, HAS_OPENDATE, COLSPAN;
+  // 입력 상태는 카테고리와 무관하게 콘텐츠명 기준 공통 저장소에 보관한다.
+  // (Supabase 도 content_name 기준이라, 전체↔개별 탭이 같은 작품을 자동 공유한다)
+  var LS_KEY = "lle_eval_v2";
+  var saved = {}, state = [], indexByName = {};
   var countrySel = new Set();   // 국가 다중 선택 (콘텐츠 전용)
 
   /* ---------- 평가자 로그인 (정적·로컬, 카테고리 공통) ---------- */
@@ -135,7 +183,9 @@
   }
 
   function persist() {
+    // 현 데이터셋(전체 또는 개별)의 작품만 갱신하고 나머지는 보존한다.
     var out = {};
+    try { out = JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (e) { out = {}; }
     DATA.forEach(function (w, i) {
       out[w.콘텐츠명] = { p1: state[i].p1, p2: state[i].p2, r1: state[i].r1, r2: state[i].r2 };
     });
@@ -206,14 +256,15 @@
     if (c.f === NAMEFIELD) return 200;
     var w = {
       "유형": 72, "세부유형": 140, "장르": 120, "공개일": 80, "플랫폼": 116,
-      "분류": 76, "형태장르": 150, "장소지역": 170, "개최지": 150, "기간": 140
+      "분류": 76, "형태장르": 150, "장소지역": 170, "개최지": 150, "기간": 140,
+      "카테고리": 84, "유형분류": 96, "시작일": 88
     };
     return w[c.f] || 120;
   }
   function leadCellClass(c) {
     if (c.f === NAMEFIELD) return "name";
     if (c.f === "장르") return "genre";
-    if (c.f === "공개일") return "opendate";
+    if (c.f === "공개일" || c.f === "시작일") return "opendate";
     if (c.f === "플랫폼") return "platform";
     return "cat";
   }
@@ -274,7 +325,7 @@
     if (HAS_OPENDATE) {
       fgOpen.style.display = "";
       var map = {};
-      DATA.forEach(function (w) { var o = openInfo(w.공개일); map[o.key] = { label: o.label, sort: o.sort }; });
+      DATA.forEach(function (w) { var o = openInfo(w[OPENDATEFIELD]); map[o.key] = { label: o.label, sort: o.sort }; });
       var entries = Object.keys(map)
         .map(function (k) { return { key: k, label: map[k].label, sort: map[k].sort }; })
         .sort(function (a, b) { return a.sort - b.sort; });
@@ -309,7 +360,7 @@
     DATA.forEach(function (w, i) {
       if (f.type && (w[FILTERFIELD] || "").trim() !== f.type) return;
       if (HAS_COUNTRY && countrySel.size && !countrySel.has((w.국가 || "").trim())) return;
-      if (omv && openInfo(w.공개일).key !== omv) return;
+      if (omv && openInfo(w[OPENDATEFIELD]).key !== omv) return;
       if (aiMin > 0) {
         var r = aiRating(w);
         if (r == null || r < aiMin) return;
@@ -404,7 +455,7 @@
       if (c.f === NAMEFIELD) {
         html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + "</td>";
       } else {
-        var val = (c.f === "공개일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
+        var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
         html += '<td class="merged ' + leadCellClass(c) + '" rowspan="3">' + esc(val) + "</td>";
       }
     });
@@ -415,7 +466,9 @@
     var dl = "";
     if (w.순위) dl += "<dt>AI 순위</dt><dd>" + esc(w.순위) + "위</dd>";
     DETAIL.forEach(function (d) {
-      dl += "<dt>" + esc(d.label) + "</dt><dd>" + esc(w[d.f] || "-") + "</dd>";
+      var dv = w[d.f];
+      if (dv == null || dv === "") return;  // 통합 탭처럼 카테고리별로 비는 필드는 숨김
+      dl += "<dt>" + esc(d.label) + "</dt><dd>" + esc(dv) + "</dd>";
     });
     return '<tr class="detail-row" id="detail-' + i + '" data-work="' + i + '" style="display:none"><td colspan="' + COLSPAN + '">' +
       '<div class="lle-detail"><dl class="dl">' + dl + "</dl>" +
@@ -489,7 +542,7 @@
       var w = DATA[i];
       var tot = totalOf(i);
       var leadVals = COLS.map(function (c) { return w[c.f]; });
-      var omLabel = HAS_OPENDATE ? openInfo(w.공개일).label : null;
+      var omLabel = HAS_OPENDATE ? openInfo(w[OPENDATEFIELD]).label : null;
       var detailVals = DETAIL.map(function (d) { return w[d.f]; });
       var rows = [
         { who: roleName("p1"), sc: state[i].p1, rate: personRating(state[i].p1), rsn: state[i].r1 },
@@ -534,9 +587,9 @@
     DETAIL = DS.detail;
     NAMEFIELD = DS.nameField || "콘텐츠명";
     FILTERFIELD = DS.filterField || "유형";
+    OPENDATEFIELD = DS.opendateField || "공개일";
     HAS_COUNTRY = !!DS.country;
     HAS_OPENDATE = !!DS.opendate;
-    LS_KEY = "lle_eval_v1::" + DS.key;
 
     try { saved = JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (e) { saved = {}; }
     state = DATA.map(function (w) {
