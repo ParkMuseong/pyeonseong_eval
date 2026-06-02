@@ -71,6 +71,7 @@
 /* 평가사유 3열 (AI · 평가자1 · 평가자2) */
 .eval-reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
   margin: 10px 0 2px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.eval-reasons[hidden] { display: none; }  /* display:grid 가 hidden 기본값을 덮어쓰는 것 방지 */
 .eval-reasons .rz-col { min-width: 0; }
 .eval-reasons .rz-h { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--muted);
   margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid var(--line); }
