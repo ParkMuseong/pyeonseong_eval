@@ -1,21 +1,6 @@
 /* =============================================================================
  *  편성회의 Agent — 공통 스타일
  * ========================================================================== */
-
-/* ---- 브랜드 서체: LIFEPLUS (Light 300 / Medium 400 / Bold 700) ---- */
-@font-face {
-  font-family: "LIFEPLUS"; font-style: normal; font-weight: 300; font-display: swap;
-  src: url("fonts/LIFEPLUS-Light.woff2") format("woff2");
-}
-@font-face {
-  font-family: "LIFEPLUS"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/LIFEPLUS-Medium.woff2") format("woff2");
-}
-@font-face {
-  font-family: "LIFEPLUS"; font-style: normal; font-weight: 700; font-display: swap;
-  src: url("fonts/LIFEPLUS-Bold.woff2") format("woff2");
-}
-
 :root {
   /* 에디토리얼(방송·뉴스룸) 팔레트 — 종이 톤 + 잉크 + 가는 괘선 */
   --ink: #211c14;          /* 따뜻한 먹색 */
@@ -50,9 +35,8 @@
   --r-lg: 18px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
-  /* 제목·본문 모두 브랜드 서체(LIFEPLUS) 사용, 표 숫자는 정렬 위해 모노 유지 */
-  --serif: "LIFEPLUS", "Noto Serif KR", "Nanum Myeongjo", serif;
-  --sans: "LIFEPLUS", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+  --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
   --mono: "JetBrains Mono", "D2Coding", ui-monospace, monospace;
 }
