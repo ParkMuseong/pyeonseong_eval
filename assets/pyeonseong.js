@@ -1,7 +1,7 @@
 /* =============================================================================
- *  편성회의 Agent — 월간 편성표 페이지 로직 (평가 롱리스트 연동)
+ *  편성회의 Agent — 월간 편성표 페이지 로직 (평가 숏리스트 연동)
  *  · 데이터 출처: longlist_data.js(window.LONGLIST_DATASETS) + 평가 입력값
- *    - 평가 입력값은 평가 롱리스트 페이지와 동일한 공통 저장소(localStorage "lle_eval_v2")
+ *    - 평가 입력값은 평가 숏리스트 페이지와 동일한 공통 저장소(localStorage "lle_eval_v2")
  *    - Supabase 가 설정돼 있으면 다른 기기의 점수도 불러와 병합(읽기 전용)
  *  · 각 작품의 시작일(공개일 또는 기간 시작) → n월 m주 로 분류
  *  · n월 m주 안에서 총점(AI + 평가자1·2 평균) 내림차순 → 1·2·3등, 나머지는 대안
@@ -13,7 +13,7 @@
   var CFG = window.LLE_CONFIG || {};
   var DATASETS = window.LONGLIST_DATASETS || [];
   var AXES = ["화제성", "독창성", "근접성", "영향성"];
-  var SAVE_KEY = "lle_eval_v2";   // 평가 롱리스트 페이지와 공유하는 공통 저장소
+  var SAVE_KEY = "lle_eval_v2";   // 평가 숏리스트 페이지와 공유하는 공통 저장소
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -40,7 +40,7 @@
     return { month: month, week: wk, monthLabel: month + "월", weekLabel: wk + "주", sort: month * 100 + wk };
   }
 
-  /* ---------- 점수 계산 (평가 롱리스트와 동일) ---------- */
+  /* ---------- 점수 계산 (평가 숏리스트와 동일) ---------- */
   function parseScore(v) {
     if (v == null || v === "") return null;
     var n = Number(v);
@@ -283,7 +283,7 @@
     renderAll();   // 로컬 기준 즉시 표시
     document.getElementById("genFoot").textContent =
       ((DATASETS[0] && DATASETS[0].meta && DATASETS[0].meta.generated_at) ? "데이터 기준: " + DATASETS[0].meta.generated_at + " · " : "") +
-      "원본: 평가 롱리스트 연동";
+      "원본: 평가 숏리스트 연동";
 
     supaMerge(function () { renderAll(); });   // 서버 점수 병합 후 갱신
 

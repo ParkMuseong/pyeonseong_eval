@@ -1,5 +1,5 @@
 /* =============================================================================
- *  편성회의 Agent — 평가 롱리스트 확인 페이지 로직 (멀티 카테고리)
+ *  편성회의 Agent — 평가 숏리스트 확인 페이지 로직 (멀티 카테고리)
  *  - 카테고리 탭: 콘텐츠 / 공연·전시 / 스포츠 (window.LONGLIST_DATASETS)
  *  - 작품 1개 = 3행(사람1 입력 / 사람2 입력 / AI 읽기전용)
  *  - 평점(행별) = 4축 평균(2자리), 총점(작품별) = 사람1·사람2·AI 평점 평균
@@ -290,7 +290,7 @@
 
     COLSPAN = COLS.length + AXES.length + 2;
     title.setAttribute("colspan", COLSPAN);
-    title.textContent = "편성회의 " + DS.label + " 평가 롱리스트 · 사람 평가자 2인 입력 + AI 평가";
+    title.textContent = "편성회의 " + DS.label + " 평가 숏리스트 · 사람 평가자 2인 입력 + AI 평가";
   }
 
   /* ---------- 필터 옵션 빌드 (데이터셋 전환 시 재구성) ---------- */
@@ -569,7 +569,7 @@
     var url = URL.createObjectURL(blob);
     var d = new Date();
     var pad = function (n) { return (n < 10 ? "0" : "") + n; };
-    var fname = "평가롱리스트_" + DS.label + "_" + d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + ".csv";
+    var fname = "평가숏리스트_" + DS.label + "_" + d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + ".csv";
     var a = document.createElement("a");
     a.href = url; a.download = fname;
     document.body.appendChild(a); a.click();
