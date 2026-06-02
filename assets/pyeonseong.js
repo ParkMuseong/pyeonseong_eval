@@ -94,7 +94,8 @@
         var name = row.content_name, person = row.evaluator;
         if (person !== "p1" && person !== "p2") return;
         if (!SAVED[name]) SAVED[name] = {};
-        if (row.scores) SAVED[name][person] = row.scores;   // 서버 점수를 우선 반영(타 기기 동기화)
+        if (row.scores) SAVED[name][person] = row.scores;                       // 점수
+        if (row.reasons) SAVED[name][person === "p1" ? "r1" : "r2"] = row.reasons; // 평가사유
       });
       setSync("동기화됨 " + hhmm(), "ok");
       done(true);
@@ -133,18 +134,30 @@
     return { map: map, order: order };
   }
 
-  /* ---------- 평가사유 [축] 블록 파싱 ---------- */
-  function reasonBlocks(text) {
+  /* ---------- AI 평가사유: "[화제성 9] …" 블록을 항목별 줄바꿈 ---------- */
+  function aiReasonLines(text) {
     text = String(text == null ? "" : text).trim();
-    if (!text) return "";
+    if (!text) return '<div class="rz-empty">평가사유 없음</div>';
     var re = /\[([^\]]+)\]\s*([\s\S]*?)(?=\s*\[[^\]]+\]|$)/g, m, out = "", any = false;
     while ((m = re.exec(text))) {
       var label = m[1].trim(), body = m[2].trim();
       if (!label && !body) continue;
       any = true;
-      out += '<span class="rsn-sec"><b>[' + esc(label) + "]</b> " + esc(body) + "</span> ";
+      out += '<div class="rz-line"><b>[' + esc(label) + "]</b> " + esc(body) + "</div>";
     }
-    return any ? out : esc(text);
+    return any ? out : '<div class="rz-line">' + esc(text) + "</div>";
+  }
+  /* ---------- 평가자 평가사유: 축별 입력값을 줄바꿈 ---------- */
+  function personReasonLines(obj) {
+    if (!obj) return '<div class="rz-empty">입력 없음</div>';
+    var out = "", any = false;
+    AXES.forEach(function (a) {
+      var v = (obj[a] == null) ? "" : String(obj[a]).trim();
+      if (!v) return;
+      any = true;
+      out += '<div class="rz-line"><b>[' + esc(a) + "]</b> " + esc(v) + "</div>";
+    });
+    return any ? out : '<div class="rz-empty">입력 없음</div>';
   }
 
   /* ---------- 주차 기간(달력 기준) 표기 ---------- */
@@ -184,18 +197,18 @@
           if (tb !== ta) return tb - ta;
           return a.it.name.localeCompare(b.it.name, "ko");
         });
-      totalItems += ranked.length;
+      var top = ranked.slice(0, 3);   // 1·2·3등만 (대안 제거)
+      totalItems += top.length;
 
       var period = weekPeriod(mo.monthSort < 9999 ? mo.monthSort : null, wk.weekSort < 99 ? wk.weekSort : null);
       html += '<div class="week"><div class="week-head"><span class="w">' + esc(label + " " + wk.label) +
         '</span><span class="period">' + esc(period) + "</span></div>";
 
-      ranked.forEach(function (row, idx) {
-        var it = row.it, r = row.r;
-        var isAlt = idx >= 3;
-        var rank = isAlt ? "대안" : String(idx + 1) + "등";
-        var w = it.w;
-        html += '<div class="pick' + (isAlt ? " alt" : "") + '">' +
+      top.forEach(function (row, idx) {
+        var it = row.it, r = row.r, w = it.w;
+        var rank = String(idx + 1) + "등";
+        var sc = SAVED[it.name] || {};
+        html += '<div class="pick">' +
           '<span class="rank">' + esc(rank) + "</span>" +
           '<div class="body">' +
             '<div class="line1">' +
@@ -204,9 +217,14 @@
               '<span class="cat">' + esc(it.카테고리) + "</span>" +
               '<span class="date">' + esc(openDisplay(it.date)) + "</span>" +
               '<span class="score">총점 ' + fmt2(r.total) + "</span>" +
+              '<span class="rsn-toggle">평가사유 ▾</span>' +
             "</div>" +
             '<div class="score-break">AI ' + fmt2(r.ai) + " · 평가자1 " + fmt2(r.p1) + " · 평가자2 " + fmt2(r.p2) + "</div>" +
-            (w.평가사유 ? '<p class="reason">' + reasonBlocks(w.평가사유) + "</p>" : "") +
+            '<div class="eval-reasons" hidden>' +
+              '<div class="rz-col"><div class="rz-h ai">AI 평가사유</div>' + aiReasonLines(w.평가사유) + "</div>" +
+              '<div class="rz-col"><div class="rz-h">평가자1 평가사유</div>' + personReasonLines(sc.r1) + "</div>" +
+              '<div class="rz-col"><div class="rz-h">평가자2 평가사유</div>' + personReasonLines(sc.r2) + "</div>" +
+            "</div>" +
           "</div>" +
         "</div>";
       });
@@ -238,6 +256,18 @@
     monthTabsEl.addEventListener("click", function (e) {
       var b = e.target.closest ? e.target.closest(".month-tab") : null;
       if (b) renderMonth(b.getAttribute("data-m"));
+    });
+
+    // 작품 클릭 → 평가사유(AI·평가자1·2) 펼침/접기
+    weeksEl.addEventListener("click", function (e) {
+      var line = e.target.closest ? e.target.closest(".pick .line1") : null;
+      if (!line) return;
+      var pick = line.closest(".pick");
+      var box = pick && pick.querySelector(".eval-reasons");
+      if (!box) return;
+      var open = !box.hasAttribute("hidden");
+      if (open) box.setAttribute("hidden", ""); else box.removeAttribute("hidden");
+      pick.classList.toggle("open", !open);
     });
 
     SAVED = loadLocal();
