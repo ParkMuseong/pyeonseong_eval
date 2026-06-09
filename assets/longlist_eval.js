@@ -336,6 +336,22 @@
       fgOpen.style.display = "none";
       omSel.innerHTML = '<option value="">전체</option>';
     }
+
+    // 신규·변경 토글: diff 데이터(신규/변경)가 있을 때만 노출
+    var fgDiff = document.getElementById("fg-diff");
+    if (fgDiff) {
+      var nNew = DATA.filter(function (w) { return w._diff === "new"; }).length;
+      var nChg = DATA.filter(function (w) { return w._diff === "changed"; }).length;
+      if (nNew + nChg > 0) {
+        fgDiff.style.display = "";
+        var nEl = document.getElementById("f-diff-n");
+        if (nEl) nEl.textContent = "(신규 " + nNew + " · 변경 " + nChg + ")";
+      } else {
+        fgDiff.style.display = "none";
+        var d = document.getElementById("f-diff");
+        if (d) d.checked = false;
+      }
+    }
   }
 
   function resetFilters() {
@@ -349,6 +365,8 @@
     var ai = document.getElementById("f-ai");
     ai.value = "0";
     document.getElementById("f-ai-val").textContent = "전체";
+    var fd = document.getElementById("f-diff");
+    if (fd) fd.checked = false;
   }
 
   function currentFilters() { return { type: typeSel.value }; }
@@ -356,8 +374,11 @@
     var f = currentFilters();
     var omv = HAS_OPENDATE ? omSel.value : "";
     var aiMin = parseFloat(document.getElementById("f-ai").value) || 0;
+    var fdiffEl = document.getElementById("f-diff");
+    var onlyDiff = !!(fdiffEl && fdiffEl.checked);
     var out = [];
     DATA.forEach(function (w, i) {
+      if (onlyDiff && !(w._diff === "new" || w._diff === "changed")) return;
       if (f.type && (w[FILTERFIELD] || "").trim() !== f.type) return;
       if (HAS_COUNTRY && countrySel.size && !countrySel.has((w.국가 || "").trim())) return;
       if (omv && openInfo(w[OPENDATEFIELD]).key !== omv) return;
@@ -449,11 +470,22 @@
     return any ? out : '<div class="rsn-body">' + esc(text) + "</div>";
   }
 
+  function diffBadge(w) {
+    if (w._diff === "new") return ' <span class="diff-badge diff-new">🆕 신규</span>';
+    if (w._diff === "changed") {
+      var f = (w._diffFields && w._diffFields.length) ? w._diffFields.join("·") : "";
+      var ttl = f ? ' title="변경된 항목: ' + esc(f) + '"' : "";
+      return ' <span class="diff-badge diff-changed"' + ttl + ">✏️ 변경</span>";
+    }
+    return "";
+  }
+
   function leadCellsHTML(i, w) {
     var html = "";
     COLS.forEach(function (c) {
       if (c.f === NAMEFIELD) {
-        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + "</td>";
+        var dcls = w._diff === "new" ? " is-new" : (w._diff === "changed" ? " is-changed" : "");
+        html += '<td class="merged name' + dcls + '" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + diffBadge(w) + "</td>";
       } else {
         var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
         html += '<td class="merged ' + leadCellClass(c) + '" rowspan="3">' + esc(val) + "</td>";
@@ -630,6 +662,8 @@
   function wireOnce() {
     typeSel.addEventListener("change", render);
     omSel.addEventListener("change", render);
+    var fdiff = document.getElementById("f-diff");
+    if (fdiff) fdiff.addEventListener("change", render);
 
     // 국가 다중 선택 토글
     (function () {
