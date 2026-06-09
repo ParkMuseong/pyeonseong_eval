@@ -453,7 +453,8 @@
     var html = "";
     COLS.forEach(function (c) {
       if (c.f === NAMEFIELD) {
-        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + "</td>";
+        var newBadge = (w._diff === "new") ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "";
+        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + newBadge + "</td>";
       } else {
         var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
         html += '<td class="merged ' + leadCellClass(c) + '" rowspan="3">' + esc(val) + "</td>";
