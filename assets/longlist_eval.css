@@ -547,18 +547,3 @@ table.lle tbody tr.detail-row td {
   .filterbar .fgroup { flex: 1 1 40%; }
   .filterbar select { min-width: 0; width: 100%; }
 }
-
-/* ---------- 신규/변경(diff) 배지 ---------- */
-.diff-badge {
-  display: inline-block; font-size: 11px; font-weight: 700;
-  padding: 1px 7px; border-radius: 10px; margin-left: 6px;
-  vertical-align: middle; line-height: 1.6; white-space: nowrap;
-}
-.diff-badge.diff-new { background: #1f7a3d; color: #fff; }
-.diff-badge.diff-changed { background: #b5630a; color: #fff; cursor: help; }
-/* 이름 셀 좌측 강조 막대 */
-table.lle tbody td.name.is-new { box-shadow: inset 4px 0 0 #1f7a3d; }
-table.lle tbody td.name.is-changed { box-shadow: inset 4px 0 0 #b5630a; }
-/* 신규·변경만 토글 */
-.filterbar .diff-toggle { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; }
-.filterbar .diff-toggle b { color: var(--muted); font-weight: 600; }
