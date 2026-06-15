@@ -6,16 +6,16 @@
 <title>평가 숏리스트 확인 — 편성회의 Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
-<link rel="stylesheet" href="assets/style.css?v=20260615b" />
-<link rel="stylesheet" href="assets/longlist_eval.css?v=20260615b" />
+<link rel="stylesheet" href="assets/style.css?v=20260615c" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260615c" />
 </head>
 <body>
 <header class="topbar">
   <div class="wrap inner">
     <a class="brand" href="index.html">편성회의 <span class="dot">Agent</span></a>
     <nav class="nav">
-      <a href="index.html" data-page="index.html">평가 확인</a>
       <a href="longlist_new.html" data-page="longlist_new.html">신규 롱리스트</a>
+      <a href="index.html" data-page="index.html">평가 확인</a>
       <a href="pyeonseong.html" data-page="pyeonseong.html">월 편성</a>
       <a href="geonui.html" data-page="geonui.html">실무자 건의</a>
     </nav>
@@ -42,14 +42,24 @@
 
   <!-- 상단 카테고리 필터 -->
   <div class="filterbar">
-    <div class="fgroup" id="fg-유형"><label id="lbl-유형">유형</label><select id="f-유형"></select></div>
+    <div class="fgroup" id="fg-유형"><label id="lbl-유형">유형</label>
+      <div class="ms" id="ms-유형">
+        <button type="button" class="ms-btn" id="ms-유형-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-유형-panel" hidden></div>
+      </div>
+    </div>
     <div class="fgroup" id="fg-국가"><label>국가</label>
       <div class="ms" id="ms-국가">
         <button type="button" class="ms-btn" id="ms-국가-btn" aria-haspopup="true" aria-expanded="false">전체</button>
         <div class="ms-panel" id="ms-국가-panel" hidden></div>
       </div>
     </div>
-    <div class="fgroup" id="fg-공개월"><label>공개월·주차</label><select id="f-공개월"></select></div>
+    <div class="fgroup" id="fg-공개월"><label>공개월·주차</label>
+      <div class="ms" id="ms-공개월">
+        <button type="button" class="ms-btn" id="ms-공개월-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-공개월-panel" hidden></div>
+      </div>
+    </div>
     <div class="fgroup">
       <label>AI 평점 ≥ <b id="f-ai-val">전체</b></label>
       <input type="range" id="f-ai" min="0" max="9" step="0.5" value="0" />
@@ -119,9 +129,9 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=20260615b"></script>
-<script src="longlist_data.js?v=20260615b"></script>
-<script src="assets/common.js?v=20260615b"></script>
-<script src="assets/longlist_eval.js?v=20260615b"></script>
+<script src="config.js?v=20260615c"></script>
+<script src="longlist_data.js?v=20260615c"></script>
+<script src="assets/common.js?v=20260615c"></script>
+<script src="assets/longlist_eval.js?v=20260615c"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
   var DATASETS = window.LONGLIST_DATASETS;
   if (!DATASETS || !DATASETS.length) {
     DATASETS = [{
-      key: "콘텐츠", label: "콘텐츠", nameField: "콘텐츠명",
+      key: "콘텐츠", label: "영상", nameField: "콘텐츠명",
       country: true, opendate: true, opendateField: "공개일", filterField: "유형",
       cols: [
         { f: "유형", label: "유형" }, { f: "세부유형", label: "세부유형" },
@@ -247,9 +247,13 @@
   var rowsEl = document.getElementById("rows");
   var emptyEl = document.getElementById("empty");
   var countEl = document.getElementById("count");
-  var typeSel = document.getElementById("f-유형");
+  var typeBtn = document.getElementById("ms-유형-btn");
+  var typePanel = document.getElementById("ms-유형-panel");
   var typeLbl = document.getElementById("lbl-유형");
-  var omSel = document.getElementById("f-공개월");
+  var omBtn = document.getElementById("ms-공개월-btn");
+  var omPanel = document.getElementById("ms-공개월-panel");
+  var typeSet = new Set();    // 선택된 유형/분류/종목 (다중 선택)
+  var monthSet = new Set();   // 선택된 공개월·주차 key (다중 선택)
 
   /* ---------- 컬럼 너비 ---------- */
   function colWidth(c) {
@@ -295,13 +299,15 @@
 
   /* ---------- 필터 옵션 빌드 (데이터셋 전환 시 재구성) ---------- */
   function buildFilters() {
-    // 유형/분류 단일 필터
+    // 유형/분류/종목 다중 필터
     typeLbl.textContent = FILTERFIELD;
     var vals = Array.from(new Set(DATA.map(function (w) { return (w[FILTERFIELD] || "").trim(); }).filter(Boolean)))
       .sort(function (a, b) { return a.localeCompare(b, "ko"); });
-    var html = '<option value="">전체</option>';
-    vals.forEach(function (v) { html += '<option value="' + esc(v) + '">' + esc(v) + "</option>"; });
-    typeSel.innerHTML = html;
+    typePanel.innerHTML = vals.map(function (v) {
+      return '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '" /> ' + esc(v) + "</label>";
+    }).join("");
+    typeSet.clear();
+    typeBtn.textContent = "전체"; typeBtn.classList.remove("on");
 
     // 국가 다중 선택 (콘텐츠 전용)
     var fgCountry = document.getElementById("fg-국가");
@@ -320,8 +326,10 @@
       fgCountry.style.display = "none";
     }
 
-    // 공개월·주차 (콘텐츠 전용)
+    // 공개월·주차 다중 선택
     var fgOpen = document.getElementById("fg-공개월");
+    monthSet.clear();
+    omBtn.textContent = "전체"; omBtn.classList.remove("on");
     if (HAS_OPENDATE) {
       fgOpen.style.display = "";
       var map = {};
@@ -329,38 +337,38 @@
       var entries = Object.keys(map)
         .map(function (k) { return { key: k, label: map[k].label, sort: map[k].sort }; })
         .sort(function (a, b) { return a.sort - b.sort; });
-      var omHtml = '<option value="">전체</option>';
-      entries.forEach(function (e) { omHtml += '<option value="' + esc(e.key) + '">' + esc(e.label) + "</option>"; });
-      omSel.innerHTML = omHtml;
+      omPanel.innerHTML = entries.map(function (e) {
+        return '<label class="ms-opt"><input type="checkbox" value="' + esc(e.key) + '" /> ' + esc(e.label) + "</label>";
+      }).join("");
     } else {
       fgOpen.style.display = "none";
-      omSel.innerHTML = '<option value="">전체</option>';
+      omPanel.innerHTML = "";
     }
   }
 
-  function resetFilters() {
-    typeSel.value = "";
-    countrySel.clear();
-    var p = document.getElementById("ms-국가-panel");
+  function clearMS(set, btnId, panelId) {
+    set.clear();
+    var p = document.getElementById(panelId);
     if (p) Array.prototype.forEach.call(p.querySelectorAll("input[type=checkbox]"), function (c) { c.checked = false; });
-    var b = document.getElementById("ms-국가-btn");
+    var b = document.getElementById(btnId);
     if (b) { b.textContent = "전체"; b.classList.remove("on"); }
-    omSel.value = "";
+  }
+  function resetFilters() {
+    clearMS(typeSet, "ms-유형-btn", "ms-유형-panel");
+    clearMS(monthSet, "ms-공개월-btn", "ms-공개월-panel");
+    clearMS(countrySel, "ms-국가-btn", "ms-국가-panel");
     var ai = document.getElementById("f-ai");
     ai.value = "0";
     document.getElementById("f-ai-val").textContent = "전체";
   }
 
-  function currentFilters() { return { type: typeSel.value }; }
   function visibleIndices() {
-    var f = currentFilters();
-    var omv = HAS_OPENDATE ? omSel.value : "";
     var aiMin = parseFloat(document.getElementById("f-ai").value) || 0;
     var out = [];
     DATA.forEach(function (w, i) {
-      if (f.type && (w[FILTERFIELD] || "").trim() !== f.type) return;
+      if (typeSet.size && !typeSet.has((w[FILTERFIELD] || "").trim())) return;
       if (HAS_COUNTRY && countrySel.size && !countrySel.has((w.국가 || "").trim())) return;
-      if (omv && openInfo(w[OPENDATEFIELD]).key !== omv) return;
+      if (HAS_OPENDATE && monthSet.size && !monthSet.has(openInfo(w[OPENDATEFIELD]).key)) return;
       if (aiMin > 0) {
         var r = aiRating(w);
         if (r == null || r < aiMin) return;
@@ -629,30 +637,30 @@
 
   /* ---------- 일회성 이벤트 와이어링 ---------- */
   function wireOnce() {
-    typeSel.addEventListener("change", render);
-    omSel.addEventListener("change", render);
-
-    // 국가 다중 선택 토글
-    (function () {
-      var btn = document.getElementById("ms-국가-btn");
-      var panel = document.getElementById("ms-국가-panel");
-      var box = document.getElementById("ms-국가");
+    // 다중 선택 드롭다운(유형/분류·공개월·국가) 공통 토글
+    function wireMS(boxId, btnId, panelId, set) {
+      var btn = document.getElementById(btnId);
+      var panel = document.getElementById(panelId);
+      var box = document.getElementById(boxId);
       if (!btn || !panel) return;
       function syncLabel() {
-        btn.textContent = countrySel.size === 0 ? "전체" : (countrySel.size + "개 선택");
-        btn.classList.toggle("on", countrySel.size > 0);
+        btn.textContent = set.size === 0 ? "전체" : (set.size + "개 선택");
+        btn.classList.toggle("on", set.size > 0);
       }
       function open(o) { panel.hidden = !o; btn.setAttribute("aria-expanded", o ? "true" : "false"); }
       btn.addEventListener("click", function (e) { e.stopPropagation(); open(panel.hidden); });
       panel.addEventListener("change", function (e) {
         var cb = e.target;
         if (!cb || cb.type !== "checkbox") return;
-        if (cb.checked) countrySel.add(cb.value); else countrySel.delete(cb.value);
+        if (cb.checked) set.add(cb.value); else set.delete(cb.value);
         syncLabel();
         render();
       });
       document.addEventListener("click", function (e) { if (box && !box.contains(e.target)) open(false); });
-    })();
+    }
+    wireMS("ms-유형", "ms-유형-btn", "ms-유형-panel", typeSet);
+    wireMS("ms-공개월", "ms-공개월-btn", "ms-공개월-panel", monthSet);
+    wireMS("ms-국가", "ms-국가-btn", "ms-국가-panel", countrySel);
 
     // AI 평점 슬라이더
     (function () {
