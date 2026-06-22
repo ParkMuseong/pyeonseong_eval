@@ -80,7 +80,7 @@
   // 입력 상태는 카테고리와 무관하게 콘텐츠명 기준 공통 저장소에 보관한다.
   // (Supabase 도 content_name 기준이라, 전체↔개별 탭이 같은 작품을 자동 공유한다)
   var LS_KEY = "lle_eval_v2";
-  var saved = {}, state = [], indexByName = {};
+  var saved = {}, state = [], indexByName = {}, boundKey = {};
   var countrySel = new Set();   // 국가 다중 선택 (콘텐츠 전용)
 
   /* ---------- 평가자 로그인 (정적·로컬, 카테고리 공통) ---------- */
@@ -91,6 +91,47 @@
   function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {} }
   var currentRole = localStorage.getItem(SESSION_KEY) || null; // 'p1' | 'p2' | null
   var serverNames = {};
+
+  /* ---------- 이름 토큰 매칭 (build_eval_from_verified.py 의 신규/기존 판정과 동일 규칙) ----------
+     배치마다 제목이 연도·회차·라운드·스폰서·괄호부제·띄어쓰기 차이로 약간씩 바뀌어
+     콘텐츠명 정확일치가 깨질 수 있다. 핵심 토큰(연도/숫자/스폰서/일반용어 제거)으로
+     동일 작품을 다시 이어 붙여 평가자 입력이 끊기지 않게 한다. */
+  var NAME_ALIAS = [["에스포츠", "e스포츠"], ["epl", "프리미어리그"], ["프리미어 리그", "프리미어리그"]];
+  var NAME_STOP = {};
+  ("개막 챔피언십 선수권 본선 정규시즌 토너먼트 플레이오프 결승 준결승 종목 시즌 " +
+   "페이즈 그랑프리 gp 인비테이셔널 미드시즌 신한 sol bc카드 한경 aig 카드").split(" ")
+    .forEach(function (t) { if (t) NAME_STOP[t] = 1; });
+  function coreTokens(name) {
+    var s = String(name || "").toLowerCase();
+    NAME_ALIAS.forEach(function (p) { s = s.split(p[0]).join(p[1]); });
+    s = s.replace(/[()（）〈〉《》\[\]「」『』·\-—–\/,~:.'"‘’“”]/g, " ");
+    var out = {};
+    s.split(/\s+/).forEach(function (t) {
+      if (!t) return;
+      if (/^20\d\d(-\d\d)?$/.test(t)) return;   // 연도(2026, 2026-27)
+      if (/^제?\d+회$/.test(t)) return;          // 제48회 / 16회
+      if (/^\d+강$/.test(t)) return;             // 16강
+      if (/^\d+차전$/.test(t)) return;           // 1차전
+      if (/^\d+$/.test(t)) return;               // 순수 숫자
+      if (/^[a-z]$/.test(t)) return;             // 단일 알파벳
+      if (NAME_STOP[t]) return;
+      out[t] = 1;
+    });
+    return Object.keys(out);
+  }
+  function tokenMatch(cur, hist) {
+    if (!cur.length || !hist.length) return false;
+    var hs = {}; hist.forEach(function (t) { hs[t] = 1; });
+    var inter = cur.filter(function (t) { return hs[t]; });
+    if (inter.length >= 2) return true;          // 공통 토큰 2개 이상 → 동일
+    if (inter.length >= 1) {                      // 공통 1개 + 한쪽이 부분집합 → 동일
+      var cs = {}; cur.forEach(function (t) { cs[t] = 1; });
+      var curSub = cur.every(function (t) { return hs[t]; });
+      var histSub = hist.every(function (t) { return cs[t]; });
+      if (curSub || histSub) return true;
+    }
+    return false;
+  }
   function roleName(role) {
     var u = getUsers()[role];
     return (u && u.name) || serverNames[role] || (role === "p1" ? "평가자1" : "평가자2");
@@ -135,11 +176,11 @@
     setSync("불러오는 중…");
     return SB.from("evaluations").select("*").then(function (res) {
       if (res.error) throw res.error;
-      (res.data || []).forEach(function (row) {
-        var i = indexByName[row.content_name];
-        if (i == null) return;
+      var rows = (res.data || []).filter(function (row) {
+        return row.evaluator === "p1" || row.evaluator === "p2";
+      });
+      function applyRow(i, row) {
         var person = row.evaluator;
-        if (person !== "p1" && person !== "p2") return;
         var reasonKey = person === "p1" ? "r1" : "r2";
         var sc = row.scores || {}, rs = row.reasons || {};
         AXES.forEach(function (a) {
@@ -147,9 +188,39 @@
           if (rs[a] != null) state[i][reasonKey][a] = String(rs[a]);
         });
         if (row.evaluator_name) serverNames[person] = row.evaluator_name;
+      }
+      // 1) 콘텐츠명 정확 일치 (기존 동작). 못 맞춘 행은 orphan 으로 모은다.
+      var exactBound = {}, orphans = [];
+      rows.forEach(function (row) {
+        var i = indexByName[row.content_name];
+        if (i == null) { orphans.push(row); return; }
+        applyRow(i, row);
+        exactBound[i + "|" + row.evaluator] = true;
+      });
+      // 2) 퍼지 재연결 — 이름이 약간 바뀐 행을 토큰 매칭으로 복구한다.
+      //    안전장치: 현재 목록에서 '유일하게' 매칭될 때만, 그리고 같은 평가자의
+      //    정확 일치(최신 입력)가 이미 있으면 덮어쓰지 않는다(오연결·역행 방지).
+      var workTokens = DATA.map(function (w) { return coreTokens(w.콘텐츠명); });
+      var reconnected = 0;
+      orphans.forEach(function (row) {
+        var ct = coreTokens(row.content_name);
+        if (!ct.length) return;
+        var hit = -1, multi = false;
+        for (var i = 0; i < DATA.length; i++) {
+          if (tokenMatch(ct, workTokens[i])) {
+            if (hit === -1) hit = i; else { multi = true; break; }
+          }
+        }
+        if (hit === -1 || multi) return;                    // 못 찾음 또는 모호 → 건너뜀
+        if (exactBound[hit + "|" + row.evaluator]) return;  // 최신 정확 입력 우선
+        applyRow(hit, row);
+        boundKey[hit] = boundKey[hit] || {};
+        boundKey[hit][row.evaluator] = row.content_name;    // 저장은 원래 행으로 보내 중복 방지
+        reconnected++;
       });
       persist();
-      setSync("동기화됨 " + hhmm(), "ok");
+      setSync("동기화됨 " + hhmm() + (reconnected ? " · 이름변경 재연결 " + reconnected : ""), "ok");
+      if (reconnected) console.info("[재연결] 이름이 바뀐 평가입력 " + reconnected + "건을 토큰 매칭으로 복구했습니다.");
       return true;
     }).catch(function (err) {
       console.error("[Supabase] fetch 실패:", err);
@@ -160,8 +231,10 @@
   function pushRow(i, person) {
     if (!sbEnabled) return;
     var reasonKey = person === "p1" ? "r1" : "r2";
+    // 퍼지 재연결된 항목은 DB의 원래(이전 이름) 행을 그대로 갱신해 중복 행을 만들지 않는다.
+    var keyName = (boundKey[i] && boundKey[i][person]) || DATA[i].콘텐츠명;
     var row = {
-      content_name: DATA[i].콘텐츠명,
+      content_name: keyName,
       evaluator: person,
       evaluator_name: roleName(person),
       scores: state[i][person],
@@ -608,6 +681,7 @@
       return { p1: pickScore(s.p1), p2: pickScore(s.p2), r1: pickReason(s.r1), r2: pickReason(s.r2) };
     });
     indexByName = {};
+    boundKey = {};
     DATA.forEach(function (w, i) { indexByName[w.콘텐츠명] = i; });
 
     // 헤더 텍스트
