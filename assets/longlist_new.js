@@ -2,8 +2,8 @@
  *  신규 작품 롱리스트 (평가 X) — 렌더 로직
  *  데이터: window.LONGLIST (build_longlist.py 산출)
  *  공통 컴포넌트(style.css / longlist_eval.css / common.js)를 그대로 사용해
- *  다른 페이지와 톤앤매너·레이아웃·버튼·게이트를 통일한다.
- *  - 그룹 탭 / 출처·카테고리·국가·공개월 필터 / 검색 / 제목·공개일 정렬
+ *  다른 페이지와 톤앤매너·레이아웃·버튼·게이트·다중선택 UX를 통일한다.
+ *  - 그룹 탭 / 출처·카테고리·국가·공개월 다중선택 / 검색 / 제목·공개일 정렬
  *  - 행 클릭 → 상세 펼침(detail-grid) / 페이지네이션 / CSV 내보내기
  * ========================================================================== */
 (function () {
@@ -17,17 +17,15 @@
   var WORKS = DATA.works || [];
   var PAGE_SIZE = 100;
 
-  var state = { group: "전체", src: "", cat: "", nat: "", month: "", q: "", sortKey: "", sortDir: 1, page: 1, open: {} };
+  // 다중선택 상태 — 빈 Set = 전체
+  var srcSet = new Set(), catSet = new Set(), natSet = new Set(), monthSet = new Set();
+  var state = { group: "전체", q: "", sortKey: "", sortDir: 1, page: 1, open: {} };
 
   /* ---------- 유틸 ---------- */
   function uniqSorted(arr) {
     var seen = {}, out = [];
     arr.forEach(function (v) { v = (v || "").trim(); if (v && !seen[v]) { seen[v] = 1; out.push(v); } });
     return out.sort(function (a, b) { return a.localeCompare(b, "ko"); });
-  }
-  function fillSelect(sel, values, allLabel) {
-    sel.innerHTML = '<option value="">' + esc(allLabel) + "</option>" +
-      values.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + "</option>"; }).join("");
   }
   function natKey(v) { return (v || "").trim(); }
 
@@ -38,10 +36,10 @@
   function applyFilters() {
     var q = state.q.trim().toLowerCase();
     var out = groupPool().filter(function (w) {
-      if (state.src && w.출처구분 !== state.src) return false;
-      if (state.cat && w.카테고리 !== state.cat) return false;
-      if (state.nat && natKey(w.국가) !== state.nat) return false;
-      if (state.month && w.공개월 !== state.month) return false;
+      if (srcSet.size && !srcSet.has(w.출처구분)) return false;
+      if (catSet.size && !catSet.has(w.카테고리)) return false;
+      if (natSet.size && !natSet.has(natKey(w.국가))) return false;
+      if (monthSet.size && !monthSet.has(w.공개월)) return false;
       if (q) {
         var hay = (w.제목 + " " + w.출연 + " " + w.감독 + " " + w.줄거리 + " " + w.장르 + " " + (w.해시태그 || "")).toLowerCase();
         if (hay.indexOf(q) === -1) return false;
@@ -59,20 +57,51 @@
     return out;
   }
 
-  function refreshFilterOptions() {
+  /* ---------- 다중선택 (.ms — 평가 페이지와 동일 UX) ---------- */
+  function buildPanel(panelId, values) {
+    document.getElementById(panelId).innerHTML = values.map(function (v) {
+      return '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '" /> ' + esc(v) + "</label>";
+    }).join("");
+  }
+  // 현재 그룹 풀 기준으로 옵션 재구성(선택값 중 풀에 남은 것만 유지)
+  function rebuildFilterOptions() {
     var pool = groupPool();
-    var fSrc = document.getElementById("f-src"), fCat = document.getElementById("f-cat");
-    var fNat = document.getElementById("f-nat"), fMonth = document.getElementById("f-month");
-    fillSelect(fSrc, uniqSorted(pool.map(function (w) { return w.출처구분; })), "전체");
-    fillSelect(fCat, uniqSorted(pool.map(function (w) { return w.카테고리; })), "전체 카테고리");
-    var nats = uniqSorted(pool.map(function (w) { return natKey(w.국가); }));
-    fillSelect(fNat, nats.length <= 80 ? nats : nats.slice(0, 80), "전체");
-    fillSelect(fMonth, uniqSorted(pool.map(function (w) { return w.공개월; })), "전체");
-    function keep(sel, key) {
-      if ([].slice.call(sel.options).some(function (o) { return o.value === state[key]; })) sel.value = state[key];
-      else state[key] = "";
-    }
-    keep(fSrc, "src"); keep(fCat, "cat"); keep(fNat, "nat"); keep(fMonth, "month");
+    buildPanel("ms-src-panel", uniqSorted(pool.map(function (w) { return w.출처구분; })));
+    buildPanel("ms-cat-panel", uniqSorted(pool.map(function (w) { return w.카테고리; })));
+    buildPanel("ms-nat-panel", uniqSorted(pool.map(function (w) { return natKey(w.국가); })));
+    buildPanel("ms-month-panel", uniqSorted(pool.map(function (w) { return w.공개월; })));
+    pruneToPanel("ms-src-panel", srcSet); pruneToPanel("ms-cat-panel", catSet);
+    pruneToPanel("ms-nat-panel", natSet); pruneToPanel("ms-month-panel", monthSet);
+    syncPanelChecks("ms-src", srcSet); syncPanelChecks("ms-cat", catSet);
+    syncPanelChecks("ms-nat", natSet); syncPanelChecks("ms-month", monthSet);
+  }
+  function pruneToPanel(panelId, set) {
+    var avail = {};
+    [].slice.call(document.getElementById(panelId).querySelectorAll("input")).forEach(function (c) { avail[c.value] = 1; });
+    Array.from(set).forEach(function (v) { if (!avail[v]) set.delete(v); });
+  }
+  function syncPanelChecks(boxId, set) {
+    var box = document.getElementById(boxId);
+    [].slice.call(box.querySelectorAll("input[type=checkbox]")).forEach(function (c) { c.checked = set.has(c.value); });
+    msLabel(boxId, set);
+  }
+  function msLabel(boxId, set) {
+    var btn = document.getElementById(boxId + "-btn");
+    btn.textContent = set.size === 0 ? "전체" : (set.size + "개 선택");
+    btn.classList.toggle("on", set.size > 0);
+  }
+  function wireMS(boxId, set) {
+    var box = document.getElementById(boxId);
+    var btn = document.getElementById(boxId + "-btn");
+    var panel = document.getElementById(boxId + "-panel");
+    function open(o) { panel.hidden = !o; btn.setAttribute("aria-expanded", o ? "true" : "false"); }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); open(panel.hidden); });
+    panel.addEventListener("change", function (e) {
+      var c = e.target; if (!c || c.type !== "checkbox") return;
+      if (c.checked) set.add(c.value); else set.delete(c.value);
+      msLabel(boxId, set); state.page = 1; render();
+    });
+    document.addEventListener("click", function (e) { if (!box.contains(e.target)) open(false); });
   }
 
   /* ---------- 그룹 탭 (.cat-tab — 다른 페이지와 동일) ---------- */
@@ -89,7 +118,7 @@
     [].slice.call(tabs.querySelectorAll(".cat-tab")).forEach(function (b) {
       b.addEventListener("click", function () {
         state.group = b.getAttribute("data-g"); state.page = 1;
-        refreshFilterOptions(); renderTabs(); render();
+        rebuildFilterOptions(); renderTabs(); render();
       });
     });
   }
@@ -110,12 +139,11 @@
     var cast = String(w.출연 || "").split(/[,/·]| - /).map(function (s) { return s.trim(); }).filter(Boolean);
     var castHTML = cast.length
       ? '<div class="cast-list">' + cast.map(function (c) { return "<span>" + esc(c) + "</span>"; }).join("") + "</div>"
-      : '<span style="color:var(--muted);font-size:13px">출연·참여 정보 없음</span>';
+      : '<span class="muted-note">출연·참여 정보 없음</span>';
 
     var tags = String(w.해시태그 || "").split(/[\s,#]+/).filter(Boolean);
     var tagHTML = tags.length
-      ? '<h4 style="margin-top:18px">해시태그</h4><div class="tag-chips">' +
-        tags.map(function (t) { return "<span>#" + esc(t) + "</span>"; }).join("") + "</div>"
+      ? '<h4>해시태그</h4><div class="tag-chips">' + tags.map(function (t) { return "<span>#" + esc(t) + "</span>"; }).join("") + "</div>"
       : "";
 
     return '<div class="detail-inner"><div class="detail-grid">' +
@@ -133,9 +161,8 @@
   }
 
   /* ---------- 렌더 ---------- */
-  var filtered = [];
   function render() {
-    filtered = applyFilters();
+    var filtered = applyFilters();
     var total = filtered.length;
     var pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     if (state.page > pages) state.page = pages;
@@ -214,6 +241,13 @@
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 
+  function resetFilters() {
+    srcSet.clear(); catSet.clear(); natSet.clear(); monthSet.clear();
+    state.q = ""; state.sortKey = ""; state.sortDir = 1; state.page = 1;
+    document.getElementById("f-q").value = "";
+    rebuildFilterOptions(); render();
+  }
+
   /* ---------- 부트 ---------- */
   function boot() {
     var s = DATA.summary || {};
@@ -224,13 +258,10 @@
     if (foot) foot.textContent = "신규 작품 롱리스트 · 입력 베이스 " + (DATA.base || "-") + " · 생성 " + (DATA.generated_at || "-");
 
     renderTabs();
-    refreshFilterOptions();
+    rebuildFilterOptions();
+    wireMS("ms-src", srcSet); wireMS("ms-cat", catSet); wireMS("ms-nat", natSet); wireMS("ms-month", monthSet);
     render();
 
-    document.getElementById("f-src").addEventListener("change", function () { state.src = this.value; state.page = 1; render(); });
-    document.getElementById("f-cat").addEventListener("change", function () { state.cat = this.value; state.page = 1; render(); });
-    document.getElementById("f-nat").addEventListener("change", function () { state.nat = this.value; state.page = 1; render(); });
-    document.getElementById("f-month").addEventListener("change", function () { state.month = this.value; state.page = 1; render(); });
     var qIn = document.getElementById("f-q"), t;
     qIn.addEventListener("input", function () { clearTimeout(t); t = setTimeout(function () { state.q = qIn.value; state.page = 1; render(); }, 180); });
     [].slice.call(document.querySelectorAll("th.sortable")).forEach(function (th) {
@@ -240,10 +271,7 @@
         state.page = 1; render();
       });
     });
-    document.getElementById("resetBtn").addEventListener("click", function () {
-      state.src = state.cat = state.nat = state.month = state.q = ""; state.sortKey = ""; state.sortDir = 1;
-      qIn.value = ""; state.page = 1; refreshFilterOptions(); render();
-    });
+    document.getElementById("resetBtn").addEventListener("click", resetFilters);
     document.getElementById("exportBtn").addEventListener("click", exportCSV);
   }
 

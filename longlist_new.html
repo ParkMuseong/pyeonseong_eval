@@ -6,9 +6,9 @@
 <title>신규 작품 롱리스트 — 편성회의 Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
-<link rel="stylesheet" href="assets/style.css?v=20260623d" />
-<link rel="stylesheet" href="assets/longlist_eval.css?v=20260623d" />
-<link rel="stylesheet" href="assets/longlist_new.css?v=20260623d" />
+<link rel="stylesheet" href="assets/style.css?v=20260623e" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260623e" />
+<link rel="stylesheet" href="assets/longlist_new.css?v=20260623e" />
 </head>
 <body>
 <header class="topbar">
@@ -30,27 +30,47 @@
   </div>
 
   <p class="nl-note">
-    수집 마스터를 <b>공개일 4~13주 윈도우</b>로 필터링한 뒤 검증반영(영상·공연·전시·스포츠·도서)의
-    신규분을 더한 <b>평가 전 작품 후보 목록</b>입니다. 평가 점수는 표시하지 않습니다.
+    수집 마스터를 <b>공개일 4–13주 윈도우</b>로 추린 뒤 검증반영(영상·공연·전시·스포츠·도서)의
+    신규분을 더한 <b>평가 전 작품 후보</b>입니다. 평가 점수는 싣지 않습니다.
   </p>
 
   <!-- 그룹 전환 탭 -->
   <div class="cat-tabs" id="grpTabs"></div>
 
-  <!-- 상단 필터 바 -->
+  <!-- 상단 필터 바 (다중 선택) -->
   <div class="filterbar">
-    <div class="fgroup"><label>출처</label><select id="f-src"></select></div>
-    <div class="fgroup"><label>카테고리</label><select id="f-cat"></select></div>
-    <div class="fgroup"><label>국가·지역</label><select id="f-nat"></select></div>
-    <div class="fgroup"><label>공개월</label><select id="f-month"></select></div>
-    <div class="fgroup"><label>검색</label>
+    <div class="fgroup"><label>출처</label>
+      <div class="ms" id="ms-src">
+        <button type="button" class="ms-btn" id="ms-src-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-src-panel" hidden></div>
+      </div>
+    </div>
+    <div class="fgroup"><label>카테고리</label>
+      <div class="ms" id="ms-cat">
+        <button type="button" class="ms-btn" id="ms-cat-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-cat-panel" hidden></div>
+      </div>
+    </div>
+    <div class="fgroup"><label>국가·지역</label>
+      <div class="ms" id="ms-nat">
+        <button type="button" class="ms-btn" id="ms-nat-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-nat-panel" hidden></div>
+      </div>
+    </div>
+    <div class="fgroup"><label>공개월</label>
+      <div class="ms" id="ms-month">
+        <button type="button" class="ms-btn" id="ms-month-btn" aria-haspopup="true" aria-expanded="false">전체</button>
+        <div class="ms-panel" id="ms-month-panel" hidden></div>
+      </div>
+    </div>
+    <div class="fgroup nl-search"><label>검색</label>
       <input type="search" id="f-q" placeholder="제목·출연·제작·줄거리·해시태그" autocomplete="off" />
     </div>
     <div class="spacer"></div>
     <div class="actions">
       <span class="count" id="count"></span>
-      <button class="btn ghost" id="resetBtn" type="button">필터 초기화</button>
-      <button class="btn" id="exportBtn" type="button">CSV로 내보내기</button>
+      <button class="btn ghost" id="resetBtn" type="button">초기화</button>
+      <button class="btn" id="exportBtn" type="button">CSV 내보내기</button>
     </div>
   </div>
 
@@ -76,14 +96,15 @@
     </table>
   </div>
 
-  <div class="nl-pager" id="pager"></div>
-  <div class="empty" id="empty" style="display:none">조건에 맞는 작품이 없습니다.</div>
-
-  <div class="lle-hint">
-    · 행을 클릭하면 <b>줄거리·출연·제작·해시태그·링크</b> 상세가 펼쳐집니다.
-    · <b>신규</b> 배지는 발굴→평가→검증을 거쳐 보강된 후보입니다(점수는 표시하지 않음).
-    · 제목·공개일 헤더를 클릭하면 정렬되고, 현재 필터 결과는 「CSV로 내보내기」로 저장할 수 있습니다.
+  <div class="nl-foot">
+    <div class="nl-pager" id="pager"></div>
+    <p class="lle-hint">
+      행을 클릭하면 줄거리·출연·제작·해시태그·링크가 펼쳐집니다. <span class="dot-sep"></span>
+      <b class="src-new mini">신규</b> 는 발굴–평가–검증을 거친 보강 후보입니다. <span class="dot-sep"></span>
+      제목·공개일 헤더로 정렬, 현재 결과는 CSV로 내보낼 수 있습니다.
+    </p>
   </div>
+  <div class="empty" id="empty" style="display:none">조건에 맞는 작품이 없습니다.</div>
 </main>
 
 <!-- 접근 암호 게이트 -->
@@ -103,9 +124,9 @@
   </div>
 </footer>
 
-<script src="config.js?v=20260623d"></script>
-<script src="longlist_new_data.js?v=20260623d"></script>
-<script src="assets/common.js?v=20260623d"></script>
-<script src="assets/longlist_new.js?v=20260623d"></script>
+<script src="config.js?v=20260623e"></script>
+<script src="longlist_new_data.js?v=20260623e"></script>
+<script src="assets/common.js?v=20260623e"></script>
+<script src="assets/longlist_new.js?v=20260623e"></script>
 </body>
 </html>
