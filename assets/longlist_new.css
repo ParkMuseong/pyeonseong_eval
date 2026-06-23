@@ -9,8 +9,9 @@
   margin: 2px 0 4px;
   font-size: 14px;
   color: var(--ink-soft);
-  max-width: 760px;
   line-height: 1.7;
+  white-space: nowrap;     /* 한 줄 유지(줄바꿈 금지) */
+  overflow-x: auto;        /* 좁은 화면에서 넘치면 가로 스크롤 */
 }
 .nl-note b { color: var(--ink); font-weight: 600; }
 
