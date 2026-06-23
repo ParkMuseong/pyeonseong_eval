@@ -57,16 +57,21 @@
     return out;
   }
 
+  // 출처 표시 라벨(필터/태그) — 필터 매칭 값(출처구분)은 그대로 두고 보이는 글자만 정정한다.
+  var SRC_LABEL = { "수집": "API 및 크롤링", "추가(검증반영)": "웹 검색" };
+  function srcLabel(v) { return SRC_LABEL[v] || v; }
+
   /* ---------- 다중선택 (.ms — 평가 페이지와 동일 UX) ---------- */
-  function buildPanel(panelId, values) {
+  function buildPanel(panelId, values, labelFn) {
     document.getElementById(panelId).innerHTML = values.map(function (v) {
-      return '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '" /> ' + esc(v) + "</label>";
+      var lbl = labelFn ? labelFn(v) : v;
+      return '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '" /> ' + esc(lbl) + "</label>";
     }).join("");
   }
   // 현재 그룹 풀 기준으로 옵션 재구성(선택값 중 풀에 남은 것만 유지)
   function rebuildFilterOptions() {
     var pool = groupPool();
-    buildPanel("ms-src-panel", uniqSorted(pool.map(function (w) { return w.출처구분; })));
+    buildPanel("ms-src-panel", uniqSorted(pool.map(function (w) { return w.출처구분; })), srcLabel);
     buildPanel("ms-cat-panel", uniqSorted(pool.map(function (w) { return w.카테고리; })));
     buildPanel("ms-nat-panel", uniqSorted(pool.map(function (w) { return natKey(w.국가); })));
     buildPanel("ms-month-panel", uniqSorted(pool.map(function (w) { return w.공개월; })));
@@ -176,18 +181,20 @@
     slice.forEach(function (w) {
       var id = w.번호;
       var isOpen = !!state.open[id];
-      var isNew = w.출처구분 !== "수집";
+      var isNew = w.출처구분 !== "수집";          // 출처: "웹 검색"(검증반영 보강분) ↔ "API 및 크롤링"(수집)
+      var isFresh = w._diff === "new";            // 직전 배포에 없던 신규 항목(배포 원칙 2)
       var gcls = "gp g-" + (w.구분 || "기타");
       html += '<tr class="row' + (isOpen ? " open" : "") + '" data-id="' + id + '">' +
         '<td class="c-no">' + esc(w.번호) + "</td>" +
         '<td class="c-grp"><span class="' + esc(gcls) + '">' + esc(w.구분 || "-") + "</span></td>" +
         '<td class="c-cat t-cat">' + esc(w.카테고리 || "-") + "</td>" +
         '<td class="c-title t-title"><span class="chev">▶</span> ' + esc(w.제목 || "-") +
-          (isNew ? '<span class="src-new">신규</span>' : "") + "</td>" +
+          (isFresh ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">NEW</span>' : "") +
+          (isNew ? '<span class="src-new">웹 검색</span>' : "") + "</td>" +
         '<td class="c-nat">' + esc(w.국가 || "-") + "</td>" +
         '<td class="c-date">' + esc(w.공개일 || "-") + "</td>" +
         '<td class="c-genre">' + esc(w.장르 || "-") + "</td>" +
-        '<td class="c-src"><span class="src-tag' + (isNew ? " new" : "") + '">' + (isNew ? "신규" : "수집") + "</span></td>" +
+        '<td class="c-src"><span class="src-tag' + (isNew ? " new" : "") + '">' + (isNew ? "웹 검색" : "API 및 크롤링") + "</span></td>" +
         "</tr>";
       if (isOpen) html += '<tr class="detail"><td colspan="8">' + detailHTML(w) + "</td></tr>";
     });
@@ -225,11 +232,12 @@
 
   /* ---------- CSV (현재 필터 결과 전체) ---------- */
   function exportCSV() {
-    var cols = ["번호", "구분", "카테고리", "제목", "국가", "공개일", "장르", "편성", "출연", "감독", "해시태그", "줄거리", "URL", "출처", "출처구분"];
+    var cols = ["번호", "구분", "카테고리", "제목", "국가", "공개일", "장르", "편성", "출연", "감독", "해시태그", "줄거리", "URL", "출처", "출처구분", "직전배포대비"];
     var rows = [cols.join(",")];
     applyFilters().forEach(function (w) {
       rows.push(cols.map(function (c) {
-        var v = w[c] == null ? "" : String(w[c]);
+        var v = c === "직전배포대비" ? (w._diff === "new" ? "신규" : "기존")
+              : (w[c] == null ? "" : String(w[c]));
         if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
         return v;
       }).join(","));
@@ -253,7 +261,8 @@
     var s = DATA.summary || {};
     document.getElementById("meta").innerHTML =
       "생성 " + esc(DATA.generated_at || "-") + " · 총 <b>" + (s.total || WORKS.length).toLocaleString("ko") +
-      "</b>건 (필터링 " + (s.수집 || 0).toLocaleString("ko") + " + 신규 " + (s.추가 || 0).toLocaleString("ko") + ")";
+      "</b>건 (API 및 크롤링 " + (s.수집 || 0).toLocaleString("ko") + " + 웹 검색 " + (s.추가 || 0).toLocaleString("ko") + ")" +
+      (s.신규 ? ' · <span class="new-badge" title="직전 배포에 없던 신규 항목">NEW</span> ' + s.신규.toLocaleString("ko") + "건" : "");
     var foot = document.getElementById("genFoot");
     if (foot) foot.textContent = "신규 작품 롱리스트 · 입력 베이스 " + (DATA.base || "-") + " · 생성 " + (DATA.generated_at || "-");
 
