@@ -189,7 +189,7 @@
         '<td class="c-grp"><span class="' + esc(gcls) + '">' + esc(w.구분 || "-") + "</span></td>" +
         '<td class="c-cat t-cat">' + esc(w.카테고리 || "-") + "</td>" +
         '<td class="c-title t-title"><span class="chev">▶</span> ' + esc(w.제목 || "-") +
-          (isFresh ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">NEW</span>' : "") +
+          (isFresh ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "") +
           (isNew ? '<span class="src-new">웹 검색</span>' : "") + "</td>" +
         '<td class="c-nat">' + esc(w.국가 || "-") + "</td>" +
         '<td class="c-date">' + esc(w.공개일 || "-") + "</td>" +
@@ -262,7 +262,7 @@
     document.getElementById("meta").innerHTML =
       "생성 " + esc(DATA.generated_at || "-") + " · 총 <b>" + (s.total || WORKS.length).toLocaleString("ko") +
       "</b>건 (API 및 크롤링 " + (s.수집 || 0).toLocaleString("ko") + " + 웹 검색 " + (s.추가 || 0).toLocaleString("ko") + ")" +
-      (s.신규 ? ' · <span class="new-badge" title="직전 배포에 없던 신규 항목">NEW</span> ' + s.신규.toLocaleString("ko") + "건" : "");
+      (s.신규 ? ' · <span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span> ' + s.신규.toLocaleString("ko") + "건" : "");
     var foot = document.getElementById("genFoot");
     if (foot) foot.textContent = "신규 작품 롱리스트 · 입력 베이스 " + (DATA.base || "-") + " · 생성 " + (DATA.generated_at || "-");
 
