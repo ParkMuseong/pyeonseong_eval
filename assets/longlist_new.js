@@ -241,7 +241,7 @@
       var isProm = promotedSet.has(pid);
       var isSel = selSet.has(id);
       var selCell = isProm
-        ? '<td class="c-sel"><span class="prom-chip" title="이미 평가 숏리스트에 올라간 작품">올림</span></td>'
+        ? '<td class="c-sel"><button type="button" class="prom-chip" data-id="' + id + '" title="클릭하면 평가 숏리스트에서 내립니다">올림 ✕</button></td>'
         : '<td class="c-sel"><input type="checkbox" class="row-sel" data-id="' + id + '"' + (isSel ? " checked" : "") + " /></td>";
       html += '<tr class="row' + (isOpen ? " open" : "") + (isProm ? " promoted" : "") + '" data-id="' + id + '">' +
         selCell +
@@ -276,6 +276,10 @@
         syncSelAll(slice);
         updatePromoteBar();
       });
+    });
+    // '올림 ✕' 버튼 → 평가 숏리스트에서 내리기
+    [].slice.call(tbody.querySelectorAll("button.prom-chip")).forEach(function (b) {
+      b.addEventListener("click", function (e) { e.stopPropagation(); doDemote(+b.getAttribute("data-id")); });
     });
     syncSelAll(slice);
     updatePromoteBar();
@@ -388,6 +392,27 @@
       console.error("[shortlist] 저장 실패:", err);
       setPbStatus("저장 실패 — " + (err.message || "네트워크/권한 확인"), "err");
       if (btn) btn.disabled = false;
+    });
+  }
+
+  // 평가 숏리스트에서 내리기(해당 작품 행 삭제) — 점수 데이터(evaluations)는 별도 테이블이라 건드리지 않음
+  function doDemote(id) {
+    if (!sbEnabled) { setPbStatus("Supabase 미설정 · 내리기 불가", "err"); return; }
+    var w = WORK_BY_ID[id];
+    if (!w) return;
+    var name = (w.제목 || "").trim();
+    if (!name) return;
+    if (!window.confirm('"' + name + '" 을(를) 평가 숏리스트에서 내릴까요?\n(롱리스트에는 그대로 남고, 평가 페이지에서 제외됩니다)')) return;
+    setPbStatus("내리는 중…");
+    SB.from("shortlist").delete().eq("content_name", name).then(function (res) {
+      if (res.error) throw res.error;
+      promotedSet.delete(name);
+      selSet.delete(id);
+      setPbStatus('"' + name + '" 을(를) 내렸습니다 ✓', "ok");
+      render();
+    }).catch(function (err) {
+      console.error("[shortlist] 내리기 실패:", err);
+      setPbStatus("내리기 실패 — " + (err.message || "네트워크/권한 확인"), "err");
     });
   }
 

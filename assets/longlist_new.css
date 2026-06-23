@@ -55,15 +55,22 @@
 /* 선택 칸 + 올림 칩 */
 .prom-chip {
   display: inline-block;
+  font-family: inherit;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  padding: 1px 7px;
+  padding: 2px 8px;
+  border: none;
   border-radius: 999px;
   background: var(--green);
   color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .14s var(--ease);
 }
+.prom-chip:hover { background: var(--amber); }   /* 내리기 신호 */
 table.long tbody tr.row.promoted td { opacity: 0.62; }
+table.long tbody tr.row.promoted td.c-sel { opacity: 1; }   /* 내리기 버튼은 또렷하게 */
 table.long td.c-sel, table.long th.c-sel { text-align: center; padding-left: 6px; padding-right: 6px; }
 table.long input.row-sel, #selAll { width: 15px; height: 15px; cursor: pointer; accent-color: var(--green); }
 

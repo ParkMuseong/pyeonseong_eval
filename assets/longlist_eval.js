@@ -99,9 +99,24 @@
       : BASE_DATASETS.slice();
   }
 
-  // shortlist 행을 카테고리별 BASE_DATASETS 에 병합(콘텐츠명 중복 제거, 게임은 동적 생성)
+  // shortlist 행을 카테고리별 BASE_DATASETS 에 동기화한다.
+  //  - 더 이상 shortlist 에 없는 '올림' 항목(내려간 작품)은 제거
+  //  - 새로 올라온 항목은 추가(콘텐츠명 중복 제거, 게임은 동적 생성)
+  //  ※ 정적 빌드 작품(_promoted 아님)과 점수(evaluations)는 건드리지 않는다.
   function mergeShortlist(rows) {
-    if (!rows || !rows.length) return;
+    rows = rows || [];
+    var incoming = {};
+    rows.forEach(function (r) {
+      var n = String(r.content_name || (r.work && r.work.콘텐츠명) || "").trim();
+      if (n) incoming[n] = true;
+    });
+    // 1) 내려간 올림 항목 제거
+    BASE_DATASETS.forEach(function (ds) {
+      ds.works = ds.works.filter(function (w) {
+        return !(w._promoted && !incoming[String(w.콘텐츠명 || "").trim()]);
+      });
+    });
+    // 2) 새로 올라온 항목 추가
     var byKey = {};
     BASE_DATASETS.forEach(function (ds) { byKey[ds.key] = ds; });
     rows.forEach(function (r) {
