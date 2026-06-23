@@ -21,6 +21,59 @@
   var srcSet = new Set(), catSet = new Set(), natSet = new Set(), monthSet = new Set();
   var state = { group: "전체", q: "", sortKey: "", sortDir: 1, page: 1, open: {} };
 
+  // 평가 숏리스트 올리기 상태
+  var selSet = new Set();          // 선택된 작품(번호)
+  var promotedSet = new Set();     // 이미 Supabase shortlist 에 올라간 작품(제목)
+  var WORK_BY_ID = {};             // 번호 → work
+  WORKS.forEach(function (w) { WORK_BY_ID[w.번호] = w; });
+
+  /* ---------- Supabase (평가 페이지와 동일 설정 공유) ---------- */
+  var SB = null, sbEnabled = false;
+  if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient) {
+    try { SB = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); sbEnabled = true; } catch (e) { sbEnabled = false; }
+  }
+
+  // 롱리스트 구분 → 평가 페이지 카테고리 키
+  function evalCategory(group) {
+    switch (group) {
+      case "영상": return "콘텐츠";
+      case "공연": case "전시": return "공연전시";
+      case "스포츠": return "스포츠";
+      case "게임": return "게임";
+      default: return "콘텐츠";
+    }
+  }
+  // 날짜 문자열에서 시작일(선행 yyyy-mm[-dd]) 추출
+  function startDate(s) {
+    var m = String(s || "").match(/\d{4}[.\-]\d{1,2}(?:[.\-]\d{1,2})?/);
+    return m ? m[0].replace(/\./g, "-") : "";
+  }
+  // 롱리스트 work → 평가 페이지 카테고리별 행(work) 형식으로 매핑
+  function toEvalWork(w) {
+    var cat = evalCategory(w.구분);
+    var base = {
+      콘텐츠명: (w.제목 || "").trim(),
+      국가: w.국가 || "", 장르: w.장르 || "", 공개일: w.공개일 || "",
+      해시태그: w.해시태그 || "", URL: w.URL || "", 출처: w.출처 || "",
+      _promoted: true, _promoted_src: w.출처 || ""
+    };
+    if (cat === "공연전시") {
+      base.분류 = w.카테고리 || ""; base.형태장르 = w.장르 || "";
+      base.장소지역 = w.국가 || ""; base.기간 = w.공개일 || ""; base.시작일 = startDate(w.공개일);
+      base.주최기획 = w.감독 || ""; base.출연작가 = w.출연 || ""; base.개요 = w.줄거리 || "";
+    } else if (cat === "스포츠") {
+      base.종목 = w.카테고리 || ""; base.대회유형 = w.장르 || "";
+      base.개최지 = w.국가 || ""; base.시작일 = startDate(w.공개일) || w.공개일 || "";
+      base["세부/리그"] = ""; base.중계 = w.편성 || ""; base.주최 = w.감독 || "";
+      base.주요참가 = w.출연 || ""; base.개요 = w.줄거리 || "";
+    } else {  // 콘텐츠 / 게임 — 동일 컬럼 구성
+      base.유형 = w.카테고리 || ""; base.세부유형 = "";
+      base.플랫폼 = w.편성 || ""; base.감독 = w.감독 || "";
+      base.출연진 = w.출연 || ""; base.줄거리 = w.줄거리 || "";
+    }
+    return { category: cat, content_name: base.콘텐츠명, work: base };
+  }
+
   /* ---------- 유틸 ---------- */
   function uniqSorted(arr) {
     var seen = {}, out = [];
@@ -184,7 +237,14 @@
       var isNew = w.출처구분 !== "수집";          // 출처: "웹 검색"(검증반영 보강분) ↔ "API 및 크롤링"(수집)
       var isFresh = w._diff === "new";            // 직전 배포에 없던 신규 항목(배포 원칙 2)
       var gcls = "gp g-" + (w.구분 || "기타");
-      html += '<tr class="row' + (isOpen ? " open" : "") + '" data-id="' + id + '">' +
+      var pid = (w.제목 || "").trim();
+      var isProm = promotedSet.has(pid);
+      var isSel = selSet.has(id);
+      var selCell = isProm
+        ? '<td class="c-sel"><span class="prom-chip" title="이미 평가 숏리스트에 올라간 작품">올림</span></td>'
+        : '<td class="c-sel"><input type="checkbox" class="row-sel" data-id="' + id + '"' + (isSel ? " checked" : "") + " /></td>";
+      html += '<tr class="row' + (isOpen ? " open" : "") + (isProm ? " promoted" : "") + '" data-id="' + id + '">' +
+        selCell +
         '<td class="c-no">' + esc(w.번호) + "</td>" +
         '<td class="c-grp"><span class="' + esc(gcls) + '">' + esc(w.구분 || "-") + "</span></td>" +
         '<td class="c-cat t-cat">' + esc(w.카테고리 || "-") + "</td>" +
@@ -195,21 +255,44 @@
         '<td class="c-genre">' + esc(w.장르 || "-") + "</td>" +
         '<td class="c-src"><span class="src-tag' + (isNew ? " new" : "") + '">' + (isNew ? "웹 검색" : "API 및 크롤링") + "</span></td>" +
         "</tr>";
-      if (isOpen) html += '<tr class="detail"><td colspan="8">' + detailHTML(w) + "</td></tr>";
+      if (isOpen) html += '<tr class="detail"><td colspan="9">' + detailHTML(w) + "</td></tr>";
     });
     tbody.innerHTML = html;
 
     [].slice.call(tbody.querySelectorAll("tr.row")).forEach(function (tr) {
-      tr.addEventListener("click", function () {
+      tr.addEventListener("click", function (e) {
+        if (e.target.closest && e.target.closest(".c-sel")) return;  // 체크박스 칸 클릭은 상세 토글 제외
         var id = tr.getAttribute("data-id");
         state.open[id] = !state.open[id];
         render();
       });
     });
+    // 행 선택 체크박스 (상세 토글과 분리)
+    [].slice.call(tbody.querySelectorAll("input.row-sel")).forEach(function (cb) {
+      cb.addEventListener("click", function (e) { e.stopPropagation(); });
+      cb.addEventListener("change", function () {
+        var id = +cb.getAttribute("data-id");
+        if (cb.checked) selSet.add(id); else selSet.delete(id);
+        syncSelAll(slice);
+        updatePromoteBar();
+      });
+    });
+    syncSelAll(slice);
+    updatePromoteBar();
 
     document.getElementById("count").textContent = total.toLocaleString("ko") + "건";
     renderSortArrows();
     renderPager(total, pages, start, slice.length);
+  }
+
+  // 현재 페이지의 '올리기 가능'(미등록) 행 기준으로 전체선택 체크 상태 동기화
+  function syncSelAll(slice) {
+    var box = document.getElementById("selAll");
+    if (!box) return;
+    var selectable = slice.filter(function (w) { return !promotedSet.has((w.제목 || "").trim()); });
+    var chosen = selectable.filter(function (w) { return selSet.has(w.번호); });
+    box.checked = selectable.length > 0 && chosen.length === selectable.length;
+    box.indeterminate = chosen.length > 0 && chosen.length < selectable.length;
   }
 
   function renderPager(total, pages, start, shown) {
@@ -255,6 +338,59 @@
     rebuildFilterOptions(); render();
   }
 
+  /* ---------- 평가 숏리스트 올리기 ---------- */
+  function setPbStatus(text, kind) {
+    var el = document.getElementById("pbStatus");
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "pb-status" + (kind ? " " + kind : "");
+  }
+  function updatePromoteBar() {
+    var n = selSet.size;
+    var cnt = document.getElementById("pbCount");
+    var btn = document.getElementById("promoteBtn");
+    if (cnt) cnt.textContent = n ? (n.toLocaleString("ko") + "건 선택됨") : "선택된 작품 없음";
+    if (btn) btn.disabled = n === 0 || !sbEnabled;
+  }
+  // 이미 올라간 작품 목록을 Supabase 에서 가져와 표시(중복 등록 방지)
+  function fetchPromoted() {
+    if (!sbEnabled) return Promise.resolve();
+    return SB.from("shortlist").select("content_name").then(function (res) {
+      if (res.error) throw res.error;
+      promotedSet = new Set((res.data || []).map(function (r) { return (r.content_name || "").trim(); }));
+    }).catch(function (err) {
+      console.warn("[shortlist] 목록 조회 실패:", err);
+    });
+  }
+  function doPromote() {
+    if (!sbEnabled) { setPbStatus("Supabase 미설정 · 올리기 불가", "err"); return; }
+    var ids = Array.from(selSet);
+    if (!ids.length) return;
+    var rows = ids.map(function (id) {
+      var w = WORK_BY_ID[id];
+      if (!w) return null;
+      var m = toEvalWork(w);
+      if (!m.content_name) return null;
+      return { content_name: m.content_name, category: m.category, work: m.work, promoted_by: "" };
+    }).filter(Boolean);
+    if (!rows.length) { setPbStatus("올릴 항목이 없습니다", "err"); return; }
+
+    var btn = document.getElementById("promoteBtn");
+    if (btn) btn.disabled = true;
+    setPbStatus("올리는 중…");
+    SB.from("shortlist").upsert(rows, { onConflict: "content_name" }).then(function (res) {
+      if (res.error) throw res.error;
+      rows.forEach(function (r) { promotedSet.add(r.content_name); });
+      selSet.clear();
+      setPbStatus(rows.length.toLocaleString("ko") + "건을 평가 숏리스트로 올렸습니다 ✓", "ok");
+      render();
+    }).catch(function (err) {
+      console.error("[shortlist] 저장 실패:", err);
+      setPbStatus("저장 실패 — " + (err.message || "네트워크/권한 확인"), "err");
+      if (btn) btn.disabled = false;
+    });
+  }
+
   /* ---------- 부트 ---------- */
   function boot() {
     var s = DATA.summary || {};
@@ -281,6 +417,24 @@
     });
     document.getElementById("resetBtn").addEventListener("click", resetFilters);
     document.getElementById("exportBtn").addEventListener("click", exportCSV);
+
+    // 올리기 바
+    var selAll = document.getElementById("selAll");
+    if (selAll) selAll.addEventListener("change", function () {
+      var slice = applyFilters().slice((state.page - 1) * PAGE_SIZE, (state.page - 1) * PAGE_SIZE + PAGE_SIZE);
+      slice.forEach(function (w) {
+        if (promotedSet.has((w.제목 || "").trim())) return;
+        if (selAll.checked) selSet.add(w.번호); else selSet.delete(w.번호);
+      });
+      render();
+    });
+    document.getElementById("selClearBtn").addEventListener("click", function () { selSet.clear(); setPbStatus(""); render(); });
+    document.getElementById("promoteBtn").addEventListener("click", doPromote);
+
+    // 이미 올라간 항목을 불러와 표시(없으면 무시) — Supabase 비활성 시 안내
+    if (sbEnabled) { fetchPromoted().then(render); }
+    else { setPbStatus("Supabase 미설정 · 로컬에서는 올리기 비활성", "err"); }
+    updatePromoteBar();
   }
 
   /* ---------- 접근 암호 게이트 (다른 페이지와 동일 규약 · 세션 공유) ---------- */

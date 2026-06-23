@@ -6,9 +6,9 @@
 <title>신규 작품 롱리스트 — 편성회의 Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" />
-<link rel="stylesheet" href="assets/style.css?v=20260623j" />
-<link rel="stylesheet" href="assets/longlist_eval.css?v=20260623j" />
-<link rel="stylesheet" href="assets/longlist_new.css?v=20260623j" />
+<link rel="stylesheet" href="assets/style.css?v=20260623k" />
+<link rel="stylesheet" href="assets/longlist_eval.css?v=20260623k" />
+<link rel="stylesheet" href="assets/longlist_new.css?v=20260623k" />
 </head>
 <body>
 <header class="topbar">
@@ -74,14 +74,25 @@
     </div>
   </div>
 
+  <!-- 평가 숏리스트 올리기 바 (다중 선택 후 일괄 등록) -->
+  <div class="promote-bar" id="promoteBar">
+    <span class="pb-count" id="pbCount">선택된 작품 없음</span>
+    <span class="pb-status" id="pbStatus"></span>
+    <div class="pb-actions">
+      <button class="btn ghost" id="selClearBtn" type="button">선택 해제</button>
+      <button class="btn" id="promoteBtn" type="button" disabled>평가 숏리스트로 올리기 ↗</button>
+    </div>
+  </div>
+
   <div class="lle-wrap">
     <table class="long">
       <colgroup>
-        <col class="c-no" /><col class="c-grp" /><col class="c-cat" /><col class="c-title" />
+        <col class="c-sel" /><col class="c-no" /><col class="c-grp" /><col class="c-cat" /><col class="c-title" />
         <col class="c-nat" /><col class="c-date" /><col class="c-genre" /><col class="c-src" />
       </colgroup>
       <thead>
         <tr class="col-row">
+          <th class="c-sel"><input type="checkbox" id="selAll" title="현재 페이지 전체 선택" /></th>
           <th class="c-no">#</th>
           <th class="c-grp">그룹</th>
           <th class="c-cat">카테고리</th>
@@ -125,9 +136,10 @@
   </div>
 </footer>
 
-<script src="config.js?v=20260623j"></script>
-<script src="longlist_new_data.js?v=20260623j"></script>
-<script src="assets/common.js?v=20260623j"></script>
-<script src="assets/longlist_new.js?v=20260623j"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=20260623k"></script>
+<script src="longlist_new_data.js?v=20260623k"></script>
+<script src="assets/common.js?v=20260623k"></script>
+<script src="assets/longlist_new.js?v=20260623k"></script>
 </body>
 </html>

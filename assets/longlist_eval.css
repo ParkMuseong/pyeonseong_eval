@@ -437,6 +437,8 @@ table.lle td.rating-cell.empty { color: var(--muted); font-weight: 400; }
   color: #fff;
   white-space: nowrap;
 }
+/* 롱리스트에서 올린 작품 표시(그린) */
+.new-badge.prom { background: var(--green, #2f7d54); }
 
 /* 평점 셀: 평가자 뱃지 + 계산 평점 스택 */
 table.lle td.rating-cell .ev-badge { display: block; margin: 0 auto 3px; width: fit-content; }

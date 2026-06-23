@@ -13,10 +13,13 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   };
 
-  /* ---------- 데이터셋 (구버전 호환: 단일 LONGLIST_DATA 도 수용) ---------- */
-  var DATASETS = window.LONGLIST_DATASETS;
-  if (!DATASETS || !DATASETS.length) {
-    DATASETS = [{
+  /* ---------- 데이터셋 (구버전 호환: 단일 LONGLIST_DATA 도 수용) ----------
+   * BASE_DATASETS = 정적 빌드 카테고리(영상/공연전시/스포츠).
+   * 여기에 Supabase shortlist(롱리스트에서 올린 작품)를 병합한 뒤,
+   * assembleDatasets() 가 통합('전체') 탭을 앞에 붙여 최종 DATASETS 를 만든다. */
+  var BASE_DATASETS = window.LONGLIST_DATASETS;
+  if (!BASE_DATASETS || !BASE_DATASETS.length) {
+    BASE_DATASETS = [{
       key: "콘텐츠", label: "영상", nameField: "콘텐츠명",
       country: true, opendate: true, opendateField: "공개일", filterField: "유형",
       cols: [
@@ -27,6 +30,25 @@
       detail: [{ f: "감독", label: "감독" }, { f: "출연진", label: "출연진" }, { f: "줄거리", label: "줄거리" }],
       meta: window.LONGLIST_META || {}, works: (window.LONGLIST_DATA || []).slice()
     }];
+  }
+  var DATASETS = [];   // assembleDatasets() 에서 채움
+
+  // 게임 카테고리 — 정적 빌드에는 없으므로 shortlist 에 게임이 올라오면 동적 생성
+  function gameTemplate() {
+    return {
+      key: "게임", label: "게임", nameField: "콘텐츠명",
+      country: true, opendate: true, opendateField: "공개일", filterField: "유형",
+      cols: [
+        { f: "유형", label: "유형" }, { f: "콘텐츠명", label: "콘텐츠명" },
+        { f: "장르", label: "장르" }, { f: "공개일", label: "공개일" }, { f: "플랫폼", label: "플랫폼·기종" }
+      ],
+      detail: [
+        { f: "감독", label: "제작·배급" }, { f: "출연진", label: "주요 인물·성우" },
+        { f: "줄거리", label: "개요" }, { f: "해시태그", label: "해시태그" }
+      ],
+      meta: { generated_at: "", source: "롱리스트에서 올린 작품", count: 0, window: {} },
+      works: []
+    };
   }
 
   /* ---------- 통합(전체) 데이터셋 합성 ----------
@@ -70,8 +92,43 @@
       works: works
     };
   }
-  if (DATASETS.length > 1) {
-    DATASETS = [buildAllDataset(DATASETS)].concat(DATASETS);
+  // 최종 DATASETS 조립: 카테고리가 2개 이상이면 통합('전체') 탭을 맨 앞에 붙인다.
+  function assembleDatasets() {
+    DATASETS = (BASE_DATASETS.length > 1)
+      ? [buildAllDataset(BASE_DATASETS)].concat(BASE_DATASETS)
+      : BASE_DATASETS.slice();
+  }
+
+  // shortlist 행을 카테고리별 BASE_DATASETS 에 병합(콘텐츠명 중복 제거, 게임은 동적 생성)
+  function mergeShortlist(rows) {
+    if (!rows || !rows.length) return;
+    var byKey = {};
+    BASE_DATASETS.forEach(function (ds) { byKey[ds.key] = ds; });
+    rows.forEach(function (r) {
+      var cat = r.category || "콘텐츠";
+      var ds = byKey[cat];
+      if (!ds) {
+        if (cat === "게임") { ds = gameTemplate(); byKey[cat] = ds; BASE_DATASETS.push(ds); }
+        else { ds = byKey["콘텐츠"] || BASE_DATASETS[0]; }
+      }
+      if (!ds) return;
+      var name = String(r.content_name || (r.work && r.work.콘텐츠명) || "").trim();
+      if (!name) return;
+      var dup = ds.works.some(function (w) { return String(w.콘텐츠명 || "").trim() === name; });
+      if (dup) return;
+      var w = r.work || {};
+      w.콘텐츠명 = name;
+      w._promoted = true;
+      ds.works.push(w);
+    });
+  }
+
+  function fetchShortlist() {
+    if (!sbEnabled) return Promise.resolve([]);
+    return SB.from("shortlist").select("*").then(function (res) {
+      if (res.error) throw res.error;
+      return res.data || [];
+    }).catch(function (err) { console.warn("[shortlist] 불러오기 실패:", err); return []; });
   }
 
   /* ---------- 현재 데이터셋 상태 (loadDataset 에서 교체) ---------- */
@@ -535,7 +592,8 @@
     COLS.forEach(function (c) {
       if (c.f === NAMEFIELD) {
         var newBadge = (w._diff === "new") ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "";
-        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + newBadge + "</td>";
+        var promBadge = w._promoted ? '<span class="new-badge prom" title="롱리스트에서 올린 작품">추가</span>' : "";
+        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + promBadge + newBadge + "</td>";
       } else {
         var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
         html += '<td class="merged ' + leadCellClass(c) + '" rowspan="3">' + esc(val) + "</td>";
@@ -828,7 +886,10 @@
     wireLoginUI();
     document.getElementById("syncBtn").addEventListener("click", function () {
       if (!sbEnabled) { setSync("Supabase 미설정 · 로컬 전용", "err"); return; }
-      fetchAll().then(function () { render(); });
+      // 새로 올라온 shortlist 항목까지 반영(재조립 후 점수 동기화)
+      fetchShortlist().then(mergeShortlist).then(function () {
+        assembleDatasets(); buildTabs(); loadDataset(activeIdx);
+      });
     });
   }
 
@@ -898,11 +959,17 @@
   /* ---------- boot (게이트 통과 후 실행) ---------- */
   function boot() {
     wireOnce();
-    buildTabs();
     updateAuthBar();
-    loadDataset(0);
-    if (!sbEnabled) setSync("로컬 전용 · Supabase 미설정");
-    if (!currentRole) openLogin();
+    function finish() {
+      assembleDatasets();
+      buildTabs();
+      loadDataset(activeIdx);          // loadDataset 내부에서 fetchAll(점수)까지 수행
+      if (!sbEnabled) setSync("로컬 전용 · Supabase 미설정");
+      if (!currentRole) openLogin();
+    }
+    // 롱리스트에서 올린 작품(shortlist)을 먼저 병합한 뒤 화면 구성
+    if (sbEnabled) fetchShortlist().then(mergeShortlist).then(finish).catch(finish);
+    else finish();
   }
 
   /* ---------- 접근 암호 게이트 ---------- */
