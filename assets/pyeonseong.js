@@ -88,17 +88,24 @@
     var SB;
     try { SB = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { setSync("동기화 불가", "err"); return done(false); }
     setSync("불러오는 중…");
-    SB.from("evaluations").select("*").then(function (res) {
-      if (res.error) throw res.error;
-      (res.data || []).forEach(function (row) {
-        var name = row.content_name, person = row.evaluator;
-        if (person !== "p1" && person !== "p2") return;
-        if (!SAVED[name]) SAVED[name] = {};
-        if (row.scores) SAVED[name][person] = row.scores;                       // 점수
-        if (row.reasons) SAVED[name][person === "p1" ? "r1" : "r2"] = row.reasons; // 평가사유
+    // 1) shortlist(롱리스트에서 올린 작품) → DATASETS 병합 (실패해도 점수 병합은 진행)
+    SB.from("shortlist").select("*").then(function (res) {
+      if (!res.error) mergeShortlist(res.data || []);
+      else console.warn("[shortlist] 불러오기 실패:", res.error);
+    }, function (e) { console.warn("[shortlist] 불러오기 실패:", e); }).then(function () {
+      // 2) evaluations(점수·사유) → SAVED 병합
+      return SB.from("evaluations").select("*").then(function (res) {
+        if (res.error) throw res.error;
+        (res.data || []).forEach(function (row) {
+          var name = row.content_name, person = row.evaluator;
+          if (person !== "p1" && person !== "p2") return;
+          if (!SAVED[name]) SAVED[name] = {};
+          if (row.scores) SAVED[name][person] = row.scores;                       // 점수
+          if (row.reasons) SAVED[name][person === "p1" ? "r1" : "r2"] = row.reasons; // 평가사유
+        });
+        setSync("동기화됨 " + hhmm(), "ok");
+        done(true);
       });
-      setSync("동기화됨 " + hhmm(), "ok");
-      done(true);
     }).catch(function (err) {
       console.error("[Supabase] fetch 실패:", err);
       setSync("불러오기 실패 · 로컬 사용", "err");
@@ -106,18 +113,49 @@
     });
   }
 
-  /* ---------- 작품 평탄화 (3개 카테고리 → 단일 목록) ---------- */
+  /* ---------- 롱리스트에서 올린 작품(shortlist) 병합 ----------
+   * 평가 페이지와 동일하게 shortlist 테이블의 작품을 카테고리별 DATASETS 에 더해
+   * 월 편성 순위 계산 대상(FLAT)에 포함시킨다. (점수는 evaluations 로 별도 병합) */
+  function gameTemplate() {
+    return { key: "게임", label: "게임", nameField: "콘텐츠명", opendateField: "공개일", works: [] };
+  }
+  function mergeShortlist(rows) {
+    if (!rows || !rows.length) return;
+    var byKey = {};
+    DATASETS.forEach(function (ds) { byKey[ds.key] = ds; });
+    rows.forEach(function (r) {
+      var cat = r.category || "콘텐츠";
+      var ds = byKey[cat];
+      if (!ds) {
+        if (cat === "게임") { ds = gameTemplate(); byKey[cat] = ds; DATASETS.push(ds); }
+        else { ds = byKey["콘텐츠"] || DATASETS[0]; }
+      }
+      if (!ds) return;
+      if (!ds.works) ds.works = [];
+      var name = String(r.content_name || (r.work && r.work.콘텐츠명) || "").trim();
+      if (!name) return;
+      var dup = ds.works.some(function (w) { return String(w.콘텐츠명 || "").trim() === name; });
+      if (dup) return;
+      var w = r.work || {}; w.콘텐츠명 = name; w._promoted = true;
+      ds.works.push(w);
+    });
+  }
+
+  /* ---------- 작품 평탄화 (카테고리 → 단일 목록) ---------- */
   function fieldLabel(ds) { return ds.key === "콘텐츠" ? "영상" : ds.label; }
   function catLabel(ds, w) { return (w.유형 || w.분류 || w.종목 || "") || "-"; }
   function dateVal(ds, w) { return w[ds.opendateField || "공개일"] || ""; }
 
   var FLAT = [];
-  DATASETS.forEach(function (ds) {
-    (ds.works || []).forEach(function (w) {
-      var dv = dateVal(ds, w);
-      FLAT.push({ name: w.콘텐츠명, 분야: fieldLabel(ds), 카테고리: catLabel(ds, w), date: dv, oi: openInfo(dv), w: w });
+  function buildFlat() {
+    FLAT = [];
+    DATASETS.forEach(function (ds) {
+      (ds.works || []).forEach(function (w) {
+        var dv = dateVal(ds, w);
+        FLAT.push({ name: w.콘텐츠명, 분야: fieldLabel(ds), 카테고리: catLabel(ds, w), date: dv, oi: openInfo(dv), w: w });
+      });
     });
-  });
+  }
 
   /* ---------- 월→주차 그룹화 ---------- */
   function buildMonths() {
@@ -280,12 +318,14 @@
     });
 
     SAVED = loadLocal();
-    renderAll();   // 로컬 기준 즉시 표시
+    buildFlat();
+    renderAll();   // 정적 데이터 + 로컬 점수 기준 즉시 표시
     document.getElementById("genFoot").textContent =
       ((DATASETS[0] && DATASETS[0].meta && DATASETS[0].meta.generated_at) ? "데이터 기준: " + DATASETS[0].meta.generated_at + " · " : "") +
       "원본: 평가 숏리스트 연동";
 
-    supaMerge(function () { renderAll(); });   // 서버 점수 병합 후 갱신
+    // 서버에서 올린 작품(shortlist) + 점수(evaluations) 병합 후 갱신
+    supaMerge(function () { buildFlat(); renderAll(); });
 
     // 다른 탭/창에서 평가 점수가 바뀌면 즉시 반영
     window.addEventListener("storage", function (e) {

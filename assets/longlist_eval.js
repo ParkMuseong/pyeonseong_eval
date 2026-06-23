@@ -146,6 +146,24 @@
     }).catch(function (err) { console.warn("[shortlist] 불러오기 실패:", err); return []; });
   }
 
+  // 평가 페이지에서 직접 '내리기' — shortlist 에서 삭제 후 재동기화(점수 evaluations 는 보존)
+  function demotePromoted(i) {
+    if (!sbEnabled) { setSync("Supabase 미설정 · 내리기 불가", "err"); return; }
+    var w = DATA[i];
+    if (!w || !w._promoted) return;
+    var name = String(w.콘텐츠명 || "").trim();
+    if (!name) return;
+    if (!window.confirm('"' + name + '" 을(를) 평가 숏리스트에서 내릴까요?\n신규 롱리스트에는 그대로 남고, 이 표에서 제외됩니다. (입력한 점수는 보존)')) return;
+    setSync("내리는 중…");
+    SB.from("shortlist").delete().eq("content_name", name).then(function (res) {
+      if (res.error) { console.error("[shortlist] 내리기 실패:", res.error); setSync("내리기 실패", "err"); return; }
+      fetchShortlist().then(mergeShortlist).then(function () {
+        assembleDatasets(); buildTabs(); loadDataset(activeIdx);
+        setSync("내렸습니다 " + hhmm(), "ok");
+      });
+    });
+  }
+
   /* ---------- 현재 데이터셋 상태 (loadDataset 에서 교체) ---------- */
   var activeIdx = 0;
   var DS, DATA, META, COLS, DETAIL, NAMEFIELD, FILTERFIELD, OPENDATEFIELD, HAS_COUNTRY, HAS_OPENDATE, COLSPAN;
@@ -608,7 +626,8 @@
       if (c.f === NAMEFIELD) {
         var newBadge = (w._diff === "new") ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "";
         var promBadge = w._promoted ? '<span class="new-badge prom" title="롱리스트에서 올린 작품">추가</span>' : "";
-        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + promBadge + newBadge + "</td>";
+        var promDown = w._promoted ? '<button type="button" class="prom-down" data-i="' + i + '" title="평가 숏리스트에서 내리기 (신규 롱리스트에는 남고, 점수는 보존)">내리기 ✕</button>' : "";
+        html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + promBadge + promDown + newBadge + "</td>";
       } else {
         var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
         html += '<td class="merged ' + leadCellClass(c) + '" rowspan="3">' + esc(val) + "</td>";
@@ -888,6 +907,8 @@
     });
 
     rowsEl.addEventListener("click", function (e) {
+      var down = e.target.closest ? e.target.closest(".prom-down") : null;
+      if (down) { e.stopPropagation(); demotePromoted(+down.getAttribute("data-i")); return; }
       var nameCell = e.target.closest ? e.target.closest("td.name") : null;
       if (!nameCell) return;
       var i = nameCell.getAttribute("data-i");

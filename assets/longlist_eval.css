@@ -439,6 +439,25 @@ table.lle td.rating-cell.empty { color: var(--muted); font-weight: 400; }
 }
 /* 롱리스트에서 올린 작품 표시(그린) */
 .new-badge.prom { background: var(--green, #2f7d54); }
+/* 평가 페이지에서 직접 내리기 버튼 */
+.prom-down {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border: 1px solid var(--line, #d8d2c4);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted, #8a8a8a);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .14s, color .14s, border-color .14s;
+}
+.prom-down:hover { background: var(--amber, #c8862a); border-color: var(--amber, #c8862a); color: #fff; }
 
 /* 평점 셀: 평가자 뱃지 + 계산 평점 스택 */
 table.lle td.rating-cell .ev-badge { display: block; margin: 0 auto 3px; width: fit-content; }

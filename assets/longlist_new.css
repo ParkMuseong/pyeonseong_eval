@@ -71,12 +71,16 @@
 .prom-chip:hover { background: var(--amber); }   /* 내리기 신호 */
 table.long tbody tr.row.promoted td { opacity: 0.62; }
 table.long tbody tr.row.promoted td.c-sel { opacity: 1; }   /* 내리기 버튼은 또렷하게 */
-table.long td.c-sel, table.long th.c-sel { text-align: center; padding-left: 6px; padding-right: 6px; }
+table.long td.c-sel, table.long th.c-sel {
+  text-align: center;
+  padding-left: 4px; padding-right: 4px;
+  overflow: visible;          /* '올림 ✕' 칩이 잘리지 않도록 */
+}
 table.long input.row-sel, #selAll { width: 15px; height: 15px; cursor: pointer; accent-color: var(--green); }
 
 /* ============================ 표 ============================ */
 table.long { table-layout: fixed; }
-table.long col.c-sel   { width: 36px; }
+table.long col.c-sel   { width: 56px; }
 table.long col.c-no    { width: 44px; }
 table.long col.c-grp   { width: 92px; }
 table.long col.c-cat   { width: 102px; }
