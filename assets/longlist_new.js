@@ -189,8 +189,7 @@
         '<td class="c-grp"><span class="' + esc(gcls) + '">' + esc(w.구분 || "-") + "</span></td>" +
         '<td class="c-cat t-cat">' + esc(w.카테고리 || "-") + "</td>" +
         '<td class="c-title t-title"><span class="chev">▶</span> ' + esc(w.제목 || "-") +
-          (isFresh ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "") +
-          (isNew ? '<span class="src-new">웹 검색</span>' : "") + "</td>" +
+          (isFresh ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "") + "</td>" +
         '<td class="c-nat">' + esc(w.국가 || "-") + "</td>" +
         '<td class="c-date">' + esc(w.공개일 || "-") + "</td>" +
         '<td class="c-genre">' + esc(w.장르 || "-") + "</td>" +
