@@ -80,7 +80,7 @@ table.long input.row-sel, #selAll { width: 15px; height: 15px; cursor: pointer; 
 
 /* ============================ 표 ============================ */
 table.long { table-layout: fixed; }
-table.long col.c-sel   { width: 56px; }
+table.long col.c-sel   { width: 66px; }
 table.long col.c-no    { width: 44px; }
 table.long col.c-grp   { width: 92px; }
 table.long col.c-cat   { width: 102px; }

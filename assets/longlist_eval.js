@@ -626,7 +626,7 @@
       if (c.f === NAMEFIELD) {
         var newBadge = (w._diff === "new") ? '<span class="new-badge" title="직전 배포에 없던 신규 항목">신규</span>' : "";
         var promBadge = w._promoted ? '<span class="new-badge prom" title="롱리스트에서 올린 작품">추가</span>' : "";
-        var promDown = w._promoted ? '<button type="button" class="prom-down" data-i="' + i + '" title="평가 숏리스트에서 내리기 (신규 롱리스트에는 남고, 점수는 보존)">내리기 ✕</button>' : "";
+        var promDown = w._promoted ? '<button type="button" class="prom-down" data-i="' + i + '" title="평가 숏리스트에서 내리기 (신규 롱리스트에는 남고, 점수는 보존)">내리기</button>' : "";
         html += '<td class="merged name" rowspan="3" data-i="' + i + '"><span class="chev">▶</span>' + esc(w[c.f] || "-") + promBadge + promDown + newBadge + "</td>";
       } else {
         var val = (c.f === "공개일" || c.f === "시작일") ? openDisplay(w[c.f]) : (w[c.f] || "-");
