@@ -1,0 +1,75 @@
+/* =============================================================================
+ *  신규 작품 롱리스트 — 페이지 전용 보강 스타일
+ *  (공통: style.css + longlist_eval.css. 여기서는 롱리스트 고유 요소만 정의)
+ *  - 톤앤매너/레이아웃/버튼/탭/게이트는 다른 페이지와 동일 컴포넌트를 그대로 사용
+ * ========================================================================== */
+
+/* 안내 문단 */
+.nl-note { margin: 2px 0 6px; font-size: 13.5px; color: var(--ink-soft); max-width: 880px; line-height: 1.65; }
+.nl-note b { color: var(--ink); }
+
+/* ---- 표 컬럼 폭 (table.long 위에) ---- */
+table.long { table-layout: fixed; }
+table.long col.c-no    { width: 46px; }
+table.long col.c-grp   { width: 84px; }
+table.long col.c-cat   { width: 104px; }
+table.long col.c-nat   { width: 116px; }
+table.long col.c-date  { width: 110px; }
+table.long col.c-genre { width: 132px; }
+table.long col.c-src   { width: 84px; }
+table.long td, table.long th { overflow: hidden; text-overflow: ellipsis; }
+table.long td.c-title { white-space: normal; }
+table.long td.c-no { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+table.long td.c-date { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+table.long td.c-genre, table.long td.c-nat { color: var(--ink-soft); font-size: 12.5px; }
+
+/* 정렬 가능한 헤더 */
+table.long thead th.sortable { cursor: pointer; user-select: none; }
+table.long thead th.sortable:hover { color: var(--green); }
+table.long thead th .arw { color: var(--amber); margin-left: 3px; font-size: 10px; }
+
+/* ---- 그룹 배지 (palette 톤 유지, 좌측 컬러 막대) ---- */
+.gp {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 2px 9px 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--ink-soft); white-space: nowrap;
+  border-left: 3px solid var(--muted);
+}
+.gp.g-영상   { border-left-color: var(--green);  color: var(--green); }
+.gp.g-공연   { border-left-color: var(--amber);  color: var(--amber); }
+.gp.g-전시   { border-left-color: #6b4e8a;        color: #6b4e8a; }
+.gp.g-스포츠 { border-left-color: #2f6b8a;        color: #2f6b8a; }
+.gp.g-도서   { border-left-color: #8a5a2f;        color: #8a5a2f; }
+.gp.g-문화\·축제 { border-left-color: var(--s1);  color: var(--s1); }
+.gp.g-게임   { border-left-color: var(--green-2); color: var(--green-2); }
+
+/* 신규(검증반영) 배지 — shortlist 의 .qualified 와 같은 톤(잉크), 색만 앰버 */
+.src-new {
+  display: inline-block; font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 6px;
+  background: var(--amber); color: #fff; margin-left: 7px; vertical-align: middle;
+}
+td.c-src .src-tag { font-size: 11.5px; color: var(--muted); }
+td.c-src .src-tag.new { color: var(--amber); font-weight: 700; }
+
+/* ---- 상세: 해시태그 칩 (공통 .cast-list 톤 재사용) ---- */
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.tag-chips span {
+  background: var(--green-soft); border: 1px solid #cfe3d6; color: var(--green);
+  border-radius: 999px; padding: 2px 10px; font-size: 12px;
+}
+
+/* ---- 페이지네이션 (필터바/버튼 톤과 일치) ---- */
+.nl-pager {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin: 20px 0 4px; flex-wrap: wrap;
+}
+.nl-pager .pg-info { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+/* 반응형 — 좁은 화면에서 보조 컬럼 숨김 (공통 760px 기준과 동일) */
+@media (max-width: 760px) {
+  table.long col.c-cat, table.long col.c-genre, table.long col.c-nat { width: 0; }
+  table.long td.c-cat, table.long td.c-genre, table.long td.c-nat,
+  table.long thead th.c-cat, table.long thead th.c-genre, table.long thead th.c-nat { display: none; }
+}
