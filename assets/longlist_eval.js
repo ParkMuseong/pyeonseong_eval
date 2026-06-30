@@ -443,11 +443,17 @@
     var title = document.getElementById("lle-title");
 
     var cg = "";
-    COLS.forEach(function (c) { cg += '<col style="width:' + colWidth(c) + 'px" />'; });
-    AXES.forEach(function () { cg += '<col style="width:60px" />'; });
-    cg += '<col style="width:80px" />';  // 평점
-    cg += '<col style="width:80px" />';  // 총점
+    var totalW = 0;
+    COLS.forEach(function (c) { var cw = colWidth(c); totalW += cw; cg += '<col style="width:' + cw + 'px" />'; });
+    AXES.forEach(function () { totalW += 60; cg += '<col style="width:60px" />'; });
+    totalW += 80; cg += '<col style="width:80px" />';  // 평점
+    totalW += 80; cg += '<col style="width:80px" />';  // 총점
     colg.innerHTML = cg;
+
+    // 표 최소 폭을 실제 컬럼 합으로 맞춰, 좌측 컬럼이 많은 카테고리(도서 등)에서
+    // 맨 오른쪽 '총점' 컬럼이 잘리지 않고 .lle-wrap 가로 스크롤로 보이게 한다.
+    var tbl = colg.closest("table");
+    if (tbl) tbl.style.minWidth = totalW + "px";
 
     var cr = "";
     COLS.forEach(function (c) { cr += "<th>" + esc(c.label) + "</th>"; });
