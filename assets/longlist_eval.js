@@ -51,6 +51,24 @@
     };
   }
 
+  // 정적 빌드에 없는 임의 카테고리(문화·축제 등)가 shortlist 로 올라오면 동적 생성하는 일반 템플릿
+  function dynTemplate(key, label) {
+    return {
+      key: key, label: label || key, nameField: "콘텐츠명",
+      country: false, opendate: true, opendateField: "공개일", filterField: "유형",
+      cols: [
+        { f: "유형", label: "유형" }, { f: "콘텐츠명", label: "제목" },
+        { f: "장르", label: "장르" }, { f: "공개일", label: "공개일" }
+      ],
+      detail: [
+        { f: "감독", label: "주최·제작" }, { f: "출연진", label: "참여" },
+        { f: "줄거리", label: "개요" }, { f: "해시태그", label: "해시태그" }
+      ],
+      meta: { generated_at: "", source: "롱리스트에서 올린 작품", count: 0, window: {} },
+      works: []
+    };
+  }
+
   /* ---------- 통합(전체) 데이터셋 합성 ----------
    * 영상(콘텐츠)·공연전시·스포츠를 한 탭에 모은다.
    * 각 작품의 카테고리·유형/분류·시작일(공개일 또는 기간 시작)을 통합 컬럼으로 노출.
@@ -123,8 +141,9 @@
       var cat = r.category || "콘텐츠";
       var ds = byKey[cat];
       if (!ds) {
-        if (cat === "게임") { ds = gameTemplate(); byKey[cat] = ds; BASE_DATASETS.push(ds); }
-        else { ds = byKey["콘텐츠"] || BASE_DATASETS[0]; }
+        // 빌드에 없는 카테고리는 해당 카테고리 탭을 동적 생성한다(영상으로 떨어뜨리지 않음).
+        ds = (cat === "게임") ? gameTemplate() : dynTemplate(cat, cat);
+        byKey[cat] = ds; BASE_DATASETS.push(ds);
       }
       if (!ds) return;
       var name = String(r.content_name || (r.work && r.work.콘텐츠명) || "").trim();

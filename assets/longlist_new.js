@@ -33,14 +33,16 @@
     try { SB = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); sbEnabled = true; } catch (e) { sbEnabled = false; }
   }
 
-  // 롱리스트 구분 → 평가 페이지 카테고리 키
+  // 롱리스트 구분 → 평가 페이지 카테고리 키 (숏리스트 데이터셋 key 와 일치시킴)
   function evalCategory(group) {
     switch (group) {
       case "영상": return "콘텐츠";
       case "공연": case "전시": return "공연전시";
       case "스포츠": return "스포츠";
+      case "도서": return "도서";
       case "게임": return "게임";
-      default: return "콘텐츠";
+      // 문화·축제 등 매핑되지 않은 그룹은 그룹명 그대로 전달 → 평가 페이지에서 해당 카테고리 탭 생성
+      default: return group || "콘텐츠";
     }
   }
   // 날짜 문자열에서 시작일(선행 yyyy-mm[-dd]) 추출
@@ -66,7 +68,14 @@
       base.개최지 = w.국가 || ""; base.시작일 = startDate(w.공개일) || w.공개일 || "";
       base["세부/리그"] = ""; base.중계 = w.편성 || ""; base.주최 = w.감독 || "";
       base.주요참가 = w.출연 || ""; base.개요 = w.줄거리 || "";
-    } else {  // 콘텐츠 / 게임 — 동일 컬럼 구성
+    } else if (cat === "도서") {
+      // 롱리스트 도서 행: 카테고리=분류, 장르=장르형태, 편성=출간형태, 공개일=출간일,
+      //                  감독=출판사, 출연=저자·역자, 줄거리=개요
+      base.분류 = w.카테고리 || ""; base.장르형태 = w.장르 || "";
+      base.출간형태 = w.편성 || ""; base.출간일 = startDate(w.공개일) || w.공개일 || "";
+      base.출판사 = w.감독 || ""; base.원작국가 = w.국가 || "";
+      base.저자역자 = w.출연 || ""; base.개요 = w.줄거리 || "";
+    } else {  // 콘텐츠 / 게임 / 기타 — 동일 컬럼 구성
       base.유형 = w.카테고리 || ""; base.세부유형 = "";
       base.플랫폼 = w.편성 || ""; base.감독 = w.감독 || "";
       base.출연진 = w.출연 || ""; base.줄거리 = w.줄거리 || "";
