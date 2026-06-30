@@ -406,6 +406,15 @@ table.lle td.rating-cell {
 }
 table.lle td.rating-cell.empty { color: var(--muted); font-weight: 400; }
 
+/* 평점·총점 컬럼 우측 고정 — 좌측 컬럼이 많은 카테고리(도서 등)에서 가로 스크롤이 생겨도
+   점수 컬럼이 잘리지 않고 항상 오른쪽에 보이도록 sticky 처리. (col 너비 평점80·총점80) */
+table.lle td.rating-cell { position: sticky; right: 80px; z-index: 1; }
+table.lle tbody td.total-cell { position: sticky; right: 0; z-index: 1; }
+table.lle thead .col-row th.rating { position: sticky; right: 80px; top: 0; z-index: 3; }
+table.lle thead .col-row th.total { position: sticky; right: 0; top: 0; z-index: 3; }
+/* 고정 컬럼 좌측 경계 — 본문이 밑으로 비쳐 보이지 않도록 구분선 */
+table.lle td.rating-cell { border-left: 2px solid var(--rule); }
+
 /* 평가자 뱃지 */
 .ev-badge {
   display: inline-block;

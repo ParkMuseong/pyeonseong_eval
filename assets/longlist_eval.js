@@ -477,7 +477,7 @@
     var cr = "";
     COLS.forEach(function (c) { cr += "<th>" + esc(c.label) + "</th>"; });
     AXES.forEach(function (a) { cr += '<th class="axis">' + esc(a) + "</th>"; });
-    cr += "<th>평점</th><th class=\"total\">총점</th>";
+    cr += "<th class=\"rating\">평점</th><th class=\"total\">총점</th>";
     colrow.innerHTML = cr;
 
     COLSPAN = COLS.length + AXES.length + 2;
